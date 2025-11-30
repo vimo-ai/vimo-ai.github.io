@@ -303,7 +303,7 @@ export function calculateLayout(
 
   // 第一轮：尝试放置所有模块
   for (const module of sortedModules) {
-    const position = findBestPosition(module, freeRects, occupiedRects, padding)
+    const position = findBestPosition(module, freeRects, occupiedRects, padding, random)
 
     if (position) {
       result[module.id] = { x: position.x, y: position.y }
@@ -355,7 +355,7 @@ export function calculateLayout(
       }
 
       for (const module of sortedModules) {
-        const position = findBestPosition(module, freeRects, occupiedRects, padding)
+        const position = findBestPosition(module, freeRects, occupiedRects, padding, random)
 
         if (position) {
           result[module.id] = { x: position.x, y: position.y }
