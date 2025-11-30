@@ -3,11 +3,11 @@
     <!-- Base Grid (Faint Lines) -->
     <div class="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
-    <!-- Mouse Follower Spotlight -->
-    <div 
-      class="absolute inset-0 transition-opacity duration-300"
+    <!-- Mouse Follower Spotlight (Dynamic Color) -->
+    <div
+      class="absolute inset-0 transition-all duration-200"
       :style="{
-        background: `radial-gradient(600px circle at ${mouseX}px ${mouseY}px, rgba(0, 243, 255, 0.06), transparent 40%)`
+        background: `radial-gradient(600px circle at ${mouseX}px ${mouseY}px, ${spotlightColor}, transparent 40%)`
       }"
     ></div>
 
@@ -20,10 +20,61 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 
+interface ModuleCenter {
+  x: number
+  y: number
+  color: string
+}
+
+const props = defineProps<{
+  moduleCenters?: ModuleCenter[]
+}>()
+
 const mouseX = ref(0)
 const mouseY = ref(0)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let animationFrameId: number
+
+// 计算鼠标当前靠近的模块
+const getNearestModule = (mouseProximityThreshold = 300) => {
+  if (!props.moduleCenters || props.moduleCenters.length === 0) {
+    return null
+  }
+
+  let nearestModule: { distance: number; module: ModuleCenter } | null = null
+
+  for (const module of props.moduleCenters) {
+    const dx = mouseX.value - module.x
+    const dy = mouseY.value - module.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+
+    if (distance < mouseProximityThreshold) {
+      if (!nearestModule || distance < nearestModule.distance) {
+        nearestModule = { distance, module }
+      }
+    }
+  }
+
+  return nearestModule
+}
+
+// 计算光圈颜色（根据鼠标靠近的模块）
+const spotlightColor = computed(() => {
+  const nearest = getNearestModule(300)
+
+  if (nearest) {
+    // 根据距离计算不透明度（越近越亮）
+    const opacity = Math.max(0.06, 0.15 * (1 - nearest.distance / 300))
+    const hex = nearest.module.color
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+  }
+
+  // 默认青色
+  return 'rgba(0, 243, 255, 0.06)'
+})
 
 // Track mouse position
 const handleMouseMove = (e: MouseEvent) => {
@@ -138,32 +189,49 @@ const initCanvas = () => {
   const render = () => {
     if (!ctx) return
     ctx.clearRect(0, 0, canvas.width, canvas.height)
-    
+
     // 1. Draw Grid Dots
     const cols = Math.ceil(canvas.width / gridSize)
     const rows = Math.ceil(canvas.height / gridSize)
+    const MODULE_INFLUENCE_RADIUS = 250 // 模块影响范围（像素）
+
+    // 找到鼠标当前靠近的模块
+    const nearestModule = getNearestModule(300)
 
     for (let i = 0; i <= cols; i++) {
       for (let j = 0; j <= rows; j++) {
         const x = i * gridSize
         const y = j * gridSize
-        
-        const dx = x - mouseX.value
-        const dy = y - mouseY.value
-        const dist = Math.sqrt(dx * dx + dy * dy)
-        
+
+        // 默认值
         let r = 1
         let alpha = 0.1
-        
-        if (dist < 300) {
-          const intensity = 1 - dist / 300
-          r = 1 + intensity * 1.5
-          alpha = 0.1 + intensity * 0.4
-          ctx.fillStyle = `rgba(0, 243, 255, ${alpha})`
-        } else {
-          ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`
+        let color = { r: 255, g: 255, b: 255 } // 默认白色
+
+        // 只有当鼠标靠近某个模块时，才显示那个模块周围的彩色辐射
+        if (nearestModule) {
+          // 计算点到鼠标靠近的模块的距离
+          const dx = x - nearestModule.module.x
+          const dy = y - nearestModule.module.y
+          const distanceToModule = Math.sqrt(dx * dx + dy * dy)
+
+          // 如果点在模块影响范围内，使用模块颜色
+          if (distanceToModule < MODULE_INFLUENCE_RADIUS) {
+            const intensity = 1 - distanceToModule / MODULE_INFLUENCE_RADIUS
+            r = 1 + intensity * 1.2
+            alpha = 0.1 + intensity * 0.5
+
+            // 解析hex颜色
+            const hex = nearestModule.module.color
+            color = {
+              r: parseInt(hex.slice(1, 3), 16),
+              g: parseInt(hex.slice(3, 5), 16),
+              b: parseInt(hex.slice(5, 7), 16)
+            }
+          }
         }
-        
+
+        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`
         ctx.beginPath()
         ctx.arc(x, y, r, 0, Math.PI * 2)
         ctx.fill()

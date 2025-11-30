@@ -5,7 +5,10 @@
     <div class="fixed inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-0 pointer-events-none bg-[length:100%_2px,3px_100%] opacity-20"></div>
     
     <!-- Motherboard Decorations (Static Background Layer) -->
-    <MotherboardDecorations v-if="!isMobile" />
+    <MotherboardDecorations
+      v-if="!isMobile"
+      :module-centers="moduleCenters"
+    />
     <GlobalHUD v-if="!isMobile" />
 
     <!-- Main Container -->
@@ -36,7 +39,7 @@
           v-show="moduleStates[moduleKey] === 'booting'"
           :d="path"
           fill="none"
-          stroke="#00f3ff"
+          :stroke="moduleColors[moduleKey] || '#00f3ff'"
           stroke-width="2"
           stroke-linecap="round"
           filter="url(#glow-line)"
@@ -569,6 +572,18 @@ const icons = {
   sys_core: 'M25 25 H75 V75 H25 Z M35 35 H65 V65 H35 Z M45 45 H55 V55 H45 Z M25 25 L15 15 M75 25 L85 15 M25 75 L15 85 M75 75 L85 85'
 }
 
+// Module Colors
+const moduleColors: Record<string, string> = {
+  mcp: '#39ff14',      // Neon Green
+  memex: '#00f3ff',    // Cyan
+  hooks: '#ff6b35',    // Orange
+  vlaude: '#9d4edd',   // Purple
+  about: '#ffd60a',    // Yellow
+  docs: '#06ffa5',     // Mint
+  community: '#ff006e', // Pink
+  roadmap: '#4cc9f0'   // Sky Blue
+}
+
 const currentText = ref(defaultText)
 const terminalRef = ref<HTMLElement | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
@@ -578,6 +593,29 @@ const activeProject = ref<string | null>(null)
 const activatingProject = ref<string | null>(null) // New state for animation
 const linkedProject = ref<string | null>(null)
 let activationTimeout: NodeJS.Timeout | null = null
+
+// Computed property to get module center positions for background coloring
+const moduleCenters = computed(() => {
+  const centers: Array<{ x: number; y: number; color: string }> = []
+
+  for (const [key, element] of Object.entries(projectRefs.value)) {
+    // 只对在线的模块计算中心点
+    if (element && moduleStates.value[key] === 'online') {
+      const rect = element.getBoundingClientRect()
+      const color = moduleColors[key]
+
+      if (color) {
+        centers.push({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+          color
+        })
+      }
+    }
+  }
+
+  return centers
+})
 
 const busPaths = ref<Record<string, string>>({})
 const dependencyPath = ref('')
