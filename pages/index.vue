@@ -6,6 +6,7 @@
     
     <!-- Motherboard Decorations (Static Background Layer) -->
     <MotherboardDecorations v-if="!isMobile" />
+    <GlobalHUD v-if="!isMobile" />
 
     <!-- Main Container -->
     <div
@@ -23,29 +24,17 @@
           </filter>
         </defs>
         
-        <!-- Decorative Static Traces (Motherboard Style) -->
-        <g class="opacity-20" stroke="#444" stroke-width="1" fill="none">
-          <!-- Top Left Decoration -->
-          <path d="M 50 50 L 100 50 L 120 70" />
-          <circle cx="50" cy="50" r="2" fill="#444" />
-          
-          <!-- Bottom Right Decoration -->
-          <path d="M 1100 800 L 1050 800 L 1030 780" />
-          <circle cx="1100" cy="800" r="2" fill="#444" />
-          
-          <!-- Random Circuit Traces -->
-          <path d="M 200 100 V 150 H 250" />
-          <path d="M 900 200 H 850 V 250" />
-          <path d="M 300 800 V 750 H 350" />
-        </g>
 
-        <!-- Default Bus Lines (Faint) -->
+
+
+
+        <!-- Default Bus Lines (Faint Dashed) -->
         <path
           v-for="(path, key) in busPaths"
           :key="key"
           :d="path"
           fill="none"
-          stroke="#666"
+          stroke="#666" 
           stroke-width="1"
           class="opacity-60"
           stroke-dasharray="4 4"
@@ -294,6 +283,7 @@
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import ContentChip from '~/components/ContentChip.vue'
 import MotherboardDecorations from '~/components/MotherboardDecorations.vue'
+import GlobalHUD from '~/components/GlobalHUD.vue'
 import { useLayoutEngine } from '~/composables/useLayoutEngine'
 import { findPath, pathToSVG } from '~/utils/pathfinding'
 
@@ -634,7 +624,12 @@ const updateConnection = (key: string) => {
   if (!container) return
   const cRect = container.getBoundingClientRect()
 
-  connectionPath.value = calculatePath(pRect, tRect, cRect)
+  // Use the pre-calculated A* path if available, otherwise fallback to simple path
+  if (busPaths.value[key]) {
+    connectionPath.value = busPaths.value[key]
+  } else {
+    connectionPath.value = calculatePath(pRect, tRect, cRect)
+  }
 }
 
 const initBusLines = () => {
