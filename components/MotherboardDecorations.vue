@@ -47,6 +47,13 @@ interface Packet {
   speed: number
 }
 
+interface Capacitor {
+  x: number
+  y: number
+  orientation: 'h' | 'v'
+  size: number
+}
+
 // Canvas animation for dots and currents
 const initCanvas = () => {
   const canvas = canvasRef.value
@@ -57,16 +64,20 @@ const initCanvas = () => {
 
   let traces: Trace[] = []
   let packets: Packet[] = []
+  let capacitors: Capacitor[] = []
   const gridSize = 40
 
-  // Generate random circuit traces
+  // Generate random circuit traces and capacitors
   const generateTraces = (width: number, height: number) => {
     traces = []
     packets = [] // Clear packets to avoid invalid references
+    capacitors = []
+    
     const cols = Math.ceil(width / gridSize)
     const rows = Math.ceil(height / gridSize)
     const numTraces = Math.floor((cols * rows) / 20) // Density of traces
 
+    // Generate Traces
     for (let i = 0; i < numTraces; i++) {
       const path: Point[] = []
       let cx = Math.floor(Math.random() * cols) * gridSize
@@ -96,6 +107,23 @@ const initCanvas = () => {
       if (path.length > 1) {
         traces.push({ path })
       }
+    }
+
+    // Generate Capacitors (Scattered)
+    const numCaps = Math.floor((cols * rows) / 30) // Sparse density
+    for (let i = 0; i < numCaps; i++) {
+      const cx = Math.floor(Math.random() * cols) * gridSize
+      const cy = Math.floor(Math.random() * rows) * gridSize
+      
+      // Don't place too close to edges
+      if (cx < 50 || cx > width - 50 || cy < 50 || cy > height - 50) continue
+
+      capacitors.push({
+        x: cx,
+        y: cy,
+        orientation: Math.random() > 0.5 ? 'h' : 'v',
+        size: 12 + Math.random() * 8 // Random size
+      })
     }
   }
 
@@ -142,7 +170,7 @@ const initCanvas = () => {
       }
     }
 
-    // 2. Draw Faint Traces (Optional, helps visualize the paths)
+    // 2. Draw Faint Traces
     ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)'
     ctx.lineWidth = 1
     traces.forEach(trace => {
@@ -154,7 +182,31 @@ const initCanvas = () => {
       ctx.stroke()
     })
 
-    // 3. Manage and Draw Packets
+    // 3. Draw Capacitors
+    capacitors.forEach(cap => {
+      ctx.fillStyle = '#222' // Body
+      ctx.strokeStyle = '#444' // Border
+      ctx.lineWidth = 1
+      
+      const w = cap.orientation === 'h' ? cap.size : cap.size / 2
+      const h = cap.orientation === 'h' ? cap.size / 2 : cap.size
+      
+      // Draw Body
+      ctx.fillRect(cap.x - w/2, cap.y - h/2, w, h)
+      ctx.strokeRect(cap.x - w/2, cap.y - h/2, w, h)
+      
+      // Draw Terminals (Silver ends)
+      ctx.fillStyle = '#555'
+      if (cap.orientation === 'h') {
+        ctx.fillRect(cap.x - w/2, cap.y - h/2, 2, h) // Left
+        ctx.fillRect(cap.x + w/2 - 2, cap.y - h/2, 2, h) // Right
+      } else {
+        ctx.fillRect(cap.x - w/2, cap.y - h/2, w, 2) // Top
+        ctx.fillRect(cap.x - w/2, cap.y + h/2 - 2, w, 2) // Bottom
+      }
+    })
+
+    // 4. Manage and Draw Packets
     // Spawn new packets occasionally
     if (Math.random() < 0.03) { // Slightly more frequent
       const randomTraceIndex = Math.floor(Math.random() * traces.length)
