@@ -16,76 +16,111 @@
     >
       
       <!-- Connection Lines Layer (Desktop Only) -->
-      <svg v-if="!isMobile" class="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible">
+      <svg 
+        v-if="!isMobile" 
+        class="absolute inset-0 w-full h-full pointer-events-none z-20 overflow-visible"
+      >
         <defs>
           <filter id="glow-line" x="-20%" y="-20%" width="140%" height="140%">
             <feGaussianBlur stdDeviation="2" result="blur" />
             <feComposite in="SourceGraphic" in2="blur" operator="over" />
           </filter>
         </defs>
-        
 
+        <!-- === CONNECTION LAYER === -->
 
-
-
-        <!-- Default Bus Lines (Faint Dashed) -->
+        <!-- 1. BOOT LINES (Drawing Outwards) -->
         <path
-          v-for="(path, key) in busPaths"
-          :key="key"
+          v-for="(path, moduleKey) in busPaths"
+          :key="`boot-${moduleKey}`"
+          v-show="moduleStates[moduleKey] === 'booting'"
           :d="path"
           fill="none"
-          stroke="#666" 
-          stroke-width="1"
-          class="opacity-60"
-          stroke-dasharray="4 4"
+          stroke="#00f3ff"
+          stroke-width="2"
+          stroke-linecap="round"
+          filter="url(#glow-line)"
+          stroke-dasharray="3000"
+          :stroke-dashoffset="getBootProgress(moduleKey)"
         />
 
-        <!-- Dependency Line (MCP <-> Memex) -->
-        <path
-          v-if="dependencyPath"
-          :d="dependencyPath"
-          fill="none"
-          :stroke="dependencyActive ? '#39ff14' : '#666'"
-          :stroke-width="dependencyActive ? 2 : 1"
-          :class="dependencyActive ? 'opacity-100' : 'opacity-40'"
-          :filter="dependencyActive ? 'url(#glow-line)' : ''"
-          class="transition-all duration-300"
-        >
-          <animate
-            v-if="dependencyActive"
-            attributeName="stroke-dasharray"
-            from="0, 1000"
-            to="1000, 0"
-            dur="1s"
-            fill="freeze"
-          />
-        </path>
+        <!-- 2. ONLINE STATE (Dashed Lines + Maintenance Pulses) -->
+        <g v-for="(path, moduleKey) in busPaths" :key="`online-${moduleKey}`">
+          <template v-if="moduleStates[moduleKey] === 'online'">
+            <!-- Dashed Line -->
+            <path
+              :d="path"
+              fill="none"
+              stroke="#666" 
+              stroke-width="1"
+              class="opacity-80"
+              stroke-dasharray="4 4"
+            />
+            
+            <!-- Maintenance Pulse (Occasional) -->
+            <circle r="1.5" fill="#00f3ff" class="opacity-40">
+              <animateMotion
+                :path="path"
+                dur="3s"
+                repeatCount="indefinite"
+                :begin="`${Math.random() * 2}s`" 
+              />
+              <animate 
+                attributeName="opacity" 
+                values="0;0.6;0" 
+                dur="3s" 
+                repeatCount="indefinite"
+                :begin="`${Math.random() * 2}s`"
+              />
+            </circle>
+          </template>
+        </g>
 
-        <!-- Active Connection Line -->
+        <!-- 3. ACTIVE STATE (Hover Overlay) -->
+        <!-- ACTIVATING LINE (Bright, Animating Outwards) -->
         <path
-          v-if="connectionPath"
-          :d="connectionPath"
+          v-if="activatingProject && busPaths[activatingProject]"
+          :d="busPaths[activatingProject]"
           fill="none"
           :stroke="activeColor"
           stroke-width="2"
-          class="opacity-80"
+          class="opacity-100"
           filter="url(#glow-line)"
         >
           <animate
             attributeName="stroke-dasharray"
             from="0, 1000"
             to="1000, 0"
-            dur="1s"
+            dur="0.6s"
             fill="freeze"
+            calcMode="spline"
+            keySplines="0.4 0 0.2 1"
           />
         </path>
-        
-        <!-- Data Packet Animation (Active Line) -->
-        <circle v-if="connectionPath" r="3" :fill="activeColor">
+
+        <!-- STABLE ACTIVE LINE (Solid Color) -->
+        <path
+          v-if="activeProject && busPaths[activeProject] && activeProject !== 'sys_core'"
+          :d="busPaths[activeProject]"
+          fill="none"
+          :stroke="activeColor"
+          stroke-width="2"
+          class="opacity-100 transition-all duration-300"
+          filter="url(#glow-line)"
+        />
+
+        <!-- ACTIVE DATA PACKET (Fast Pulse) -->
+        <circle 
+          v-if="activeProject && busPaths[activeProject] && activeProject !== 'sys_core'" 
+          r="2" 
+          :fill="activeColor"
+          filter="url(#glow-line)"
+        >
           <animateMotion
-            :path="connectionPath"
-            dur="1.5s"
+            :path="busPaths[activeProject]"
+            dur="1s"
             repeatCount="indefinite"
+            calcMode="linear"
           />
         </circle>
 
@@ -116,13 +151,13 @@
         <div
           :ref="(el) => setProjectRef('mcp', el)"
           class="z-30 transition-all duration-500 hover:scale-110"
-          :class="[isMobile ? 'relative flex justify-center' : 'absolute']"
+          :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['mcp'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('mcp')"
         >
           <ProjectLogo 
             label="MCP ROUTER" 
             :path="icons.mcp"
-            color="#39ff14"
+            :color="moduleStates['mcp'] === 'online' || activeProject === 'mcp' ? '#39ff14' : '#444444'"
             :is-active="activeProject === 'mcp' || linkedProject === 'mcp'"
             @mouseenter="handleHover('mcp', '#39ff14')"
             @mouseleave="handleLeave"
@@ -134,13 +169,13 @@
         <div
           :ref="(el) => setProjectRef('memex', el)"
           class="z-30 transition-all duration-500 hover:scale-110"
-          :class="[isMobile ? 'relative flex justify-center' : 'absolute']"
+          :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['memex'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('memex')"
         >
           <ProjectLogo 
             label="MEMEX" 
             :path="icons.memex"
-            color="#00f3ff"
+            :color="moduleStates['memex'] === 'online' || activeProject === 'memex' ? '#00f3ff' : '#444444'"
             :is-active="activeProject === 'memex'"
             @mouseenter="handleHover('memex', '#00f3ff')"
             @mouseleave="handleLeave"
@@ -152,14 +187,14 @@
         <div
           :ref="(el) => setProjectRef('hooks', el)"
           class="z-30 transition-all duration-500 hover:scale-110"
-          :class="[isMobile ? 'relative flex justify-center' : 'absolute']"
+          :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['hooks'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('hooks')"
         >
           <div class="relative">
             <ProjectLogo 
               label="CLAUDE HOOKS" 
               :path="icons.hooks"
-              color="#ff6b35"
+              :color="moduleStates['hooks'] === 'online' || activeProject === 'hooks' ? '#ff6b35' : '#444444'"
               :is-active="activeProject === 'hooks'"
               @mouseenter="handleHover('hooks', '#ff6b35')"
               @mouseleave="handleLeave"
@@ -172,7 +207,7 @@
         <div
           :ref="(el) => setProjectRef('vlaude', el)"
           class="z-30 transition-all duration-500 hover:scale-110"
-          :class="[isMobile ? 'relative flex justify-center' : 'absolute']"
+          :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['vlaude'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('vlaude')"
         >
           <div class="relative">
@@ -193,7 +228,7 @@
             <ProjectLogo
               label="VLAUDE"
               :path="icons.vlaude"
-              color="#ff2a6d"
+              :color="moduleStates['vlaude'] === 'online' || activeProject === 'vlaude' ? '#ff2a6d' : '#444444'"
               :is-active="activeProject === 'vlaude'"
               @mouseenter="handleHover('vlaude', '#ff2a6d')"
               @mouseleave="handleLeave"
@@ -210,13 +245,13 @@
         <div
           :ref="(el) => setProjectRef('about', el)"
           class="z-30 transition-all duration-500"
-          :class="[isMobile ? 'relative' : 'absolute']"
+          :class="[isMobile ? 'relative' : 'absolute', moduleStates['about'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('about')"
         >
           <ContentChip 
             label="ABOUT" 
             :path="icons.about"
-            color="#ffffff"
+            :color="moduleStates['about'] === 'online' || activeProject === 'about' ? '#ffffff' : '#444444'"
             :is-active="activeProject === 'about'"
             @mouseenter="handleHover('about', '#ffffff')"
             @mouseleave="handleLeave"
@@ -227,13 +262,13 @@
         <div
           :ref="(el) => setProjectRef('docs', el)"
           class="z-30 transition-all duration-500"
-          :class="[isMobile ? 'relative' : 'absolute']"
+          :class="[isMobile ? 'relative' : 'absolute', moduleStates['docs'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('docs')"
         >
           <ContentChip 
             label="DOCS" 
             :path="icons.docs"
-            color="#ffffff"
+            :color="moduleStates['docs'] === 'online' || activeProject === 'docs' ? '#ffffff' : '#444444'"
             :is-active="activeProject === 'docs'"
             @mouseenter="handleHover('docs', '#ffffff')"
             @mouseleave="handleLeave"
@@ -244,13 +279,13 @@
         <div
           :ref="(el) => setProjectRef('community', el)"
           class="z-30 transition-all duration-500"
-          :class="[isMobile ? 'relative' : 'absolute']"
+          :class="[isMobile ? 'relative' : 'absolute', moduleStates['community'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('community')"
         >
           <ContentChip 
             label="COMMUNITY" 
             :path="icons.community"
-            color="#ffffff"
+            :color="moduleStates['community'] === 'online' || activeProject === 'community' ? '#ffffff' : '#444444'"
             :is-active="activeProject === 'community'"
             @mouseenter="handleHover('community', '#ffffff')"
             @mouseleave="handleLeave"
@@ -261,13 +296,13 @@
         <div
           :ref="(el) => setProjectRef('roadmap', el)"
           class="z-30 transition-all duration-500"
-          :class="[isMobile ? 'relative' : 'absolute']"
+          :class="[isMobile ? 'relative' : 'absolute', moduleStates['roadmap'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('roadmap')"
         >
           <ContentChip 
             label="ROADMAP" 
             :path="icons.roadmap"
-            color="#ffffff"
+            :color="moduleStates['roadmap'] === 'online' || activeProject === 'roadmap' ? '#ffffff' : '#444444'"
             :is-active="activeProject === 'roadmap'"
             @mouseenter="handleHover('roadmap', '#ffffff')"
             @mouseleave="handleLeave"
@@ -315,6 +350,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue'
 import ContentChip from '~/components/ContentChip.vue'
+import BootLine from '~/components/BootLine.vue'
 import MotherboardDecorations from '~/components/MotherboardDecorations.vue'
 import GlobalHUD from '~/components/GlobalHUD.vue'
 import { useLayoutEngine } from '~/composables/useLayoutEngine'
@@ -532,7 +568,9 @@ const projectRefs = ref<Record<string, HTMLElement>>({})
 const connectionPath = ref('')
 const activeColor = ref('#00f3ff')
 const activeProject = ref<string | null>(null)
+const activatingProject = ref<string | null>(null) // New state for animation
 const linkedProject = ref<string | null>(null)
+let activationTimeout: NodeJS.Timeout | null = null
 
 const busPaths = ref<Record<string, string>>({})
 const dependencyPath = ref('')
@@ -543,27 +581,49 @@ const setProjectRef = (key: string, el: any) => {
 }
 
 const handleHover = (key: keyof typeof projects, color: string) => {
-  currentText.value = projects[key]
-  activeColor.value = color
-  activeProject.value = key
-  
-  if (!isMobile.value) {
-    updateConnection(key)
+  if (key === 'sys_core') {
+    // Sys Core is special: instant offline status, no line
+    currentText.value = projects[key]
+    activeColor.value = color
+    activeProject.value = key
+    return
   }
 
-  // Linkage Logic
-  if (key === 'memex') {
-    linkedProject.value = 'mcp'
-    dependencyActive.value = true
-  }
+  // Prevent re-triggering if already active or activating
+  if (activeProject.value === key || activatingProject.value === key) return
+
+  currentText.value = projects[key]
+  activeColor.value = color
+  
+  // Start Activation Sequence
+  activatingProject.value = key
+  
+  // Clear any existing timeout
+  if (activationTimeout) clearTimeout(activationTimeout)
+
+  // Wait for line animation (e.g., 600ms) then activate module
+  activationTimeout = setTimeout(() => {
+    if (activatingProject.value === key) {
+      activatingProject.value = null
+      activeProject.value = key
+      
+      // Linkage Logic (only after activation)
+      if (key === 'memex') {
+        linkedProject.value = 'mcp'
+        dependencyActive.value = true
+      }
+    }
+  }, 600)
 }
 
 const handleLeave = () => {
   currentText.value = defaultText
   connectionPath.value = ''
   activeProject.value = null
+  activatingProject.value = null
   linkedProject.value = null
   dependencyActive.value = false
+  if (activationTimeout) clearTimeout(activationTimeout)
 }
 
 /**
@@ -728,10 +788,11 @@ const initBusLines = () => {
       const pRect = project.getBoundingClientRect()
 
       // 计算起点和终点（使用中心点）
-      const startX = pRect.left + pRect.width / 2 - cRect.left
-      const startY = pRect.top + pRect.height / 2 - cRect.top
-      const endX = tRect.left + tRect.width / 2 - cRect.left
-      const endY = tRect.top + tRect.height / 2 - cRect.top
+      // Reverse: Start from Terminal, End at Module
+      const startX = tRect.left + tRect.width / 2 - cRect.left
+      const startY = tRect.top + tRect.height / 2 - cRect.top
+      const endX = pRect.left + pRect.width / 2 - cRect.left
+      const endY = pRect.top + pRect.height / 2 - cRect.top
 
       // 构建障碍物列表：排除当前起点模块和 Terminal
       const obstacles: Array<{ x: number; y: number; width: number; height: number }> = []
@@ -783,6 +844,103 @@ const initBusLines = () => {
 
     dependencyPath.value = pathToSVG(depPathPoints)
   }
+  
+  // Debug: Log all generated paths
+  console.log('=== BUS PATHS GENERATED ===')
+  console.log('Total paths:', Object.keys(busPaths.value).length)
+  for (const key in busPaths.value) {
+    console.log(`${key}:`, busPaths.value[key].substring(0, 50) + '...')
+  }
+}
+
+const moduleStates = ref<Record<string, 'offline' | 'booting' | 'online'>>({
+  mcp: 'offline',
+  memex: 'offline',
+  hooks: 'offline',
+  vlaude: 'offline',
+  about: 'offline',
+  docs: 'offline',
+  community: 'offline',
+  roadmap: 'offline',
+  sys_core: 'offline'
+})
+
+const bootProgress = ref<Record<string, number>>({})
+
+const getBootProgress = (moduleKey: string) => {
+  return 3000 - ((bootProgress.value[moduleKey] || 0) * 3000)
+}
+
+const animateBootLine = (moduleKey: string, duration: number): Promise<void> => {
+  return new Promise(resolve => {
+    const drawDuration = duration * 0.7 // 70% for drawing out
+    const retractDuration = duration * 0.3 // 30% for retracting
+    const startTime = performance.now()
+    bootProgress.value[moduleKey] = 0
+    
+    const animate = (currentTime: number) => {
+      const elapsed = currentTime - startTime
+      
+      if (elapsed < drawDuration) {
+        // Phase 1: Draw out (0 -> 1)
+        const p = Math.min(elapsed / drawDuration, 1)
+        bootProgress.value[moduleKey] = p
+        requestAnimationFrame(animate)
+      } else if (elapsed < drawDuration + retractDuration) {
+        // Phase 2: Retract (1 -> 1.5, which makes line disappear from start)
+        const retractElapsed = elapsed - drawDuration
+        const p = 1 + (retractElapsed / retractDuration) * 0.5
+        bootProgress.value[moduleKey] = p
+        requestAnimationFrame(animate)
+      } else {
+        // Done
+        bootProgress.value[moduleKey] = 1.5
+        resolve()
+      }
+    }
+    
+    requestAnimationFrame(animate)
+  })
+}
+
+const runBootSequence = async () => {
+  console.log('Starting Boot Sequence...')
+  
+  // Wait a bit for layout
+  await new Promise(resolve => setTimeout(resolve, 800))
+
+  // Sequence
+  const keys = Object.keys(projects)
+  console.log('Boot sequence keys:', keys)
+  console.log('Available busPaths:', Object.keys(busPaths.value))
+  
+  for (const key of keys) {
+    if (key === 'sys_core') {
+      moduleStates.value[key] = 'offline'
+      continue
+    }
+
+    // Check if path exists
+    if (!busPaths.value[key]) {
+      console.warn(`No bus path for ${key}, skipping`)
+      continue
+    }
+
+    // Start Booting (Line draws)
+    console.log(`Booting ${key}... State:`, moduleStates.value[key])
+    moduleStates.value[key] = 'booting'
+    
+    // Animate line (2 seconds)
+    await animateBootLine(key, 2000)
+    
+    // Online (Turn Colorful)
+    console.log(`${key} is Online`)
+    moduleStates.value[key] = 'online'
+    
+    // Small stagger
+    await new Promise(resolve => setTimeout(resolve, 100))
+  }
+  console.log('Boot Sequence Complete')
 }
 
 const openLink = (url: string) => {
@@ -804,7 +962,15 @@ onMounted(() => {
   setTimeout(() => {
     if (!isMobile.value) {
       recalculateLayout()
-      setTimeout(initBusLines, 500)
+      setTimeout(() => {
+        try {
+          initBusLines()
+        } catch (e) {
+          console.error('Bus Lines Init Failed:', e)
+        }
+        // Run boot sequence regardless of bus lines success
+        runBootSequence()
+      }, 500)
     }
   }, 100)
 })
