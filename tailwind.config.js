@@ -33,6 +33,7 @@ module.exports = {
         'blink': 'blink 1s step-end infinite',
         'glitch': 'glitch 0.3s cubic-bezier(.25, .46, .45, .94) both infinite',
         'glitch-reverse': 'glitch 0.3s cubic-bezier(.25, .46, .45, .94) reverse both infinite',
+        'ripple': 'ripple 2s ease-out infinite',
       },
       keyframes: {
         blink: {
@@ -46,6 +47,30 @@ module.exports = {
           '60%': { transform: 'translate(2px, 2px)' },
           '80%': { transform: 'translate(2px, -2px)' },
           '100%': { transform: 'translate(0)' },
+        },
+        ripple: {
+          '0%': {
+            width: '0',
+            height: '0',
+            opacity: '0.8'
+          },
+          '100%': {
+            width: '350px',
+            height: '350px',
+            opacity: '0'
+          },
+        },
+        'square-ripple': {
+          '0%': {
+            width: '180px',
+            height: '180px',
+            opacity: '0.8'
+          },
+          '100%': {
+            width: '220px',
+            height: '220px',
+            opacity: '0'
+          },
         }
       }
     },
