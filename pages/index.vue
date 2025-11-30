@@ -419,12 +419,9 @@ const checkMobile = () => {
   }
 }
 
-const recalculateLayout = () => {
+const recalculateLayout = async () => {
   if (isMobile.value) return
 
-  // 获取容器的实际尺寸
-  // 容器宽度受 max-w-7xl (1280px) 限制
-  // 容器高度现在是 min-h-screen，会占满视口
   const container = containerRef.value
   if (!container) {
     console.warn('Container ref not found, using fallback dimensions')
@@ -438,6 +435,17 @@ const recalculateLayout = () => {
 
   console.log('Container dimensions:', containerWidth, 'x', containerHeight)
   computeLayout(containerWidth, containerHeight, TERMINAL_WIDTH, TERMINAL_HEIGHT, moduleConfigs)
+
+  // Wait for DOM updates to complete
+  await nextTick()
+  await new Promise(resolve => requestAnimationFrame(resolve))
+
+  // Wait for CSS transitions to complete (modules have transition-all duration-500)
+  // This ensures getBoundingClientRect() returns final positions, not mid-animation positions
+  await new Promise(resolve => setTimeout(resolve, 550))
+
+  // Now recalculate connection lines with updated positions
+  initBusLines()
 }
 
 // Project Data
@@ -565,7 +573,6 @@ const currentText = ref(defaultText)
 const terminalRef = ref<HTMLElement | null>(null)
 const containerRef = ref<HTMLElement | null>(null)
 const projectRefs = ref<Record<string, HTMLElement>>({})
-const connectionPath = ref('')
 const activeColor = ref('#00f3ff')
 const activeProject = ref<string | null>(null)
 const activatingProject = ref<string | null>(null) // New state for animation
@@ -618,7 +625,6 @@ const handleHover = (key: keyof typeof projects, color: string) => {
 
 const handleLeave = () => {
   currentText.value = defaultText
-  connectionPath.value = ''
   activeProject.value = null
   activatingProject.value = null
   linkedProject.value = null
@@ -717,40 +723,32 @@ const calculatePath = (startRect: DOMRect, endRect: DOMRect, containerRect: DOMR
   }
 }
 
-const updateConnection = (key: string) => {
-  if (isMobile.value) return
-  if (key === 'sys_core') return // No connection for disconnected chip
-
-  const terminal = terminalRef.value
-  const project = projectRefs.value[key]
-  
-  if (!terminal || !project) return
-
-  const tRect = terminal.getBoundingClientRect()
-  const pRect = project.getBoundingClientRect()
-  const container = terminal.parentElement
-  if (!container) return
-  const cRect = container.getBoundingClientRect()
-
-  // Use the pre-calculated A* path if available, otherwise fallback to simple path
-  if (busPaths.value[key]) {
-    connectionPath.value = busPaths.value[key]
-  } else {
-    connectionPath.value = calculatePath(pRect, tRect, cRect)
-  }
-}
-
 const initBusLines = () => {
   if (isMobile.value) return
 
   const terminal = terminalRef.value
   const container = terminal?.parentElement
-  if (!terminal || !container) return
+  if (!terminal || !container) {
+    console.warn('initBusLines: terminal or container not found')
+    return
+  }
+
+  // Check if projectRefs are populated
+  const availableRefs = Object.keys(projectRefs.value).length
+  if (availableRefs === 0) {
+    console.warn('initBusLines: No project refs available yet')
+    return
+  }
 
   const tRect = terminal.getBoundingClientRect()
   const cRect = container.getBoundingClientRect()
 
-  console.log('Init Bus Lines (A* Pathfinding)', { tRect, cRect })
+  console.log('Init Bus Lines (A* Pathfinding)', {
+    tRect,
+    cRect,
+    availableRefs,
+    expectedRefs: Object.keys(projects).length
+  })
 
   // 收集所有模块的矩形信息（先不作为障碍物，后面动态添加）
   const allModuleRects: Record<string, { x: number; y: number; width: number; height: number }> = {}
@@ -834,10 +832,18 @@ const initBusLines = () => {
     const endX = xRect.left - cRect.left
     const endY = xRect.top + xRect.height / 2 - cRect.top
 
+    // 构建障碍物列表：排除 mcp 和 memex
+    const depObstacles: Array<{ x: number; y: number; width: number; height: number }> = []
+    for (const otherKey in allModuleRects) {
+      if (otherKey !== 'mcp' && otherKey !== 'memex') {
+        depObstacles.push(allModuleRects[otherKey])
+      }
+    }
+
     const depPathPoints = findPath(
       { x: startX, y: startY },
       { x: endX, y: endY },
-      obstacles,
+      depObstacles,
       50,
       existingPaths
     )
@@ -947,32 +953,49 @@ const openLink = (url: string) => {
   window.open(url, '_blank')
 }
 
-onMounted(() => {
+onMounted(async () => {
   checkMobile()
-  
-  window.addEventListener('resize', () => {
+
+  // Wait for DOM to be fully rendered
+  await nextTick()
+  await new Promise(resolve => requestAnimationFrame(resolve))
+
+  // Initialize layout with stable dimensions
+  if (!isMobile.value) {
+    await recalculateLayout()
+
+    // Add additional wait to ensure all refs are set
+    await nextTick()
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Verify refs are populated before boot sequence
+    const refsCount = Object.keys(projectRefs.value).length
+    console.log(`Refs populated: ${refsCount} / ${Object.keys(projects).length}`)
+
+    if (refsCount < Object.keys(projects).length) {
+      console.warn('Not all project refs are set, retrying initBusLines...')
+      initBusLines()
+    }
+
+    runBootSequence()
+  }
+
+  // Setup resize listener
+  let resizeTimeout: NodeJS.Timeout
+  window.addEventListener('resize', async () => {
     checkMobile()
     if (!isMobile.value) {
-      recalculateLayout()
-      setTimeout(initBusLines, 100)
+      // Hide connection lines immediately during resize
+      busPaths.value = {}
+      dependencyPath.value = ''
+
+      // Debounce resize to avoid excessive recalculations
+      clearTimeout(resizeTimeout)
+      resizeTimeout = setTimeout(async () => {
+        await recalculateLayout()
+      }, 200)
     }
   })
-  
-  // Initialize layout and bus lines
-  setTimeout(() => {
-    if (!isMobile.value) {
-      recalculateLayout()
-      setTimeout(() => {
-        try {
-          initBusLines()
-        } catch (e) {
-          console.error('Bus Lines Init Failed:', e)
-        }
-        // Run boot sequence regardless of bus lines success
-        runBootSequence()
-      }, 500)
-    }
-  }, 100)
 })
 
 onUnmounted(() => {
