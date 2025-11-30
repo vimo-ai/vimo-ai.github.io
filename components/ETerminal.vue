@@ -21,7 +21,12 @@
       </div>
 
       <!-- Content -->
-      <div class="relative z-30 flex-1 overflow-hidden text-neon-cyan text-lg leading-relaxed whitespace-pre-wrap font-medium drop-shadow-[0_0_2px_rgba(0,243,255,0.5)]">
+      <div 
+        class="relative z-30 flex-1 overflow-hidden text-lg leading-relaxed whitespace-pre-wrap font-medium drop-shadow-[0_0_2px_rgba(0,243,255,0.5)] transition-colors duration-75"
+        :class="[
+          isGlitching ? 'text-neon-pink animate-glitch' : 'text-neon-cyan'
+        ]"
+      >
         <span>{{ displayedText }}</span>
         <!-- Vim Command Line (shown during delete animation) -->
         <div v-if="showVimCommand" class="mt-2 text-neon-violet">{{ vimCommand }}<span class="animate-blink inline-block w-3 h-6 bg-neon-violet align-middle ml-1"></span></div>
@@ -60,9 +65,17 @@ const props = defineProps<{
 const displayedText = ref('')
 const showVimCommand = ref(false)
 const vimCommand = ref('')
+const isGlitching = ref(false)
 const typingSpeed = 20
 let timeoutId: NodeJS.Timeout | null = null
 let isAnimating = false
+
+const triggerGlitch = () => {
+  isGlitching.value = true
+  setTimeout(() => {
+    isGlitching.value = false
+  }, 100 + Math.random() * 100)
+}
 
 const animateVimCommand = async () => {
   return new Promise<void>((resolve) => {
@@ -122,6 +135,12 @@ const typeText = async () => {
   // Type character by character
   if (current.length < target.length) {
     displayedText.value = target.slice(0, current.length + 1)
+    
+    // Random Glitch Chance
+    if (Math.random() < 0.01) { // 1% chance per character
+      triggerGlitch()
+    }
+    
     timeoutId = setTimeout(typeText, typingSpeed)
   }
 }
