@@ -5,57 +5,106 @@
     <!-- Main Container -->
     <div class="relative z-10 w-full max-w-7xl h-[900px] flex items-center justify-center">
       
+      <!-- Connection Lines Layer -->
+      <svg class="absolute inset-0 w-full h-full pointer-events-none z-10 overflow-visible">
+        <defs>
+          <filter id="glow-line" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2" result="blur" />
+            <feComposite in="SourceGraphic" in2="blur" operator="over" />
+          </filter>
+        </defs>
+        
+        <path
+          v-if="connectionPath"
+          :d="connectionPath"
+          fill="none"
+          :stroke="activeColor"
+          stroke-width="2"
+          class="opacity-80"
+          filter="url(#glow-line)"
+        >
+          <animate
+            attributeName="stroke-dasharray"
+            from="0, 1000"
+            to="1000, 0"
+            dur="1s"
+            fill="freeze"
+          />
+        </path>
+        
+        <!-- Data Packet Animation -->
+        <circle v-if="connectionPath" r="3" :fill="activeColor">
+          <animateMotion
+            :path="connectionPath"
+            dur="1.5s"
+            repeatCount="indefinite"
+          />
+        </circle>
+      </svg>
+
       <!-- Central Terminal -->
-      <div class="relative z-20">
+      <div ref="terminalRef" class="relative z-20 transition-transform duration-300 ease-out">
         <ETerminal :target-text="currentText" />
       </div>
 
       <!-- Orbiting Icons - Adjusted Positions for Larger Logos -->
       
       <!-- Top Left: MCP Router -->
-      <div class="absolute top-10 left-32">
+      <div 
+        :ref="(el) => setProjectRef('mcp', el)"
+        class="absolute top-10 left-32 z-30 transition-transform duration-300 hover:scale-110"
+      >
         <ProjectLogo 
           label="MCP ROUTER" 
           :path="icons.mcp"
           color="#39ff14"
-          @hover="setProject('mcp')"
-          @leave="resetText"
+          @mouseenter="handleHover('mcp', '#39ff14')"
+          @mouseleave="handleLeave"
           @click="openLink('https://github.com/higuaifan/mcp-router')"
         />
       </div>
 
       <!-- Top Right: Memex -->
-      <div class="absolute top-10 right-32">
+      <div 
+        :ref="(el) => setProjectRef('memex', el)"
+        class="absolute top-10 right-32 z-30 transition-transform duration-300 hover:scale-110"
+      >
         <ProjectLogo 
           label="MEMEX" 
           :path="icons.memex"
           color="#00f3ff"
-          @hover="setProject('memex')"
-          @leave="resetText"
+          @mouseenter="handleHover('memex', '#00f3ff')"
+          @mouseleave="handleLeave"
           @click="openLink('https://github.com/higuaifan/memex')"
         />
       </div>
 
       <!-- Bottom Left: Claude Hooks -->
-      <div class="absolute bottom-10 left-32">
+      <div 
+        :ref="(el) => setProjectRef('hooks', el)"
+        class="absolute bottom-10 left-32 z-30 transition-transform duration-300 hover:scale-110"
+      >
         <ProjectLogo 
           label="CLAUDE HOOKS" 
           :path="icons.hooks"
           color="#ff6b35"
-          @hover="setProject('hooks')"
-          @leave="resetText"
+          @mouseenter="handleHover('hooks', '#ff6b35')"
+          @mouseleave="handleLeave"
           @click="openLink('https://github.com/higuaifan/claude-hooks')"
         />
       </div>
 
       <!-- Bottom Right: Vlaude -->
-      <div class="absolute bottom-10 right-32">
+      <div 
+        :ref="(el) => setProjectRef('vlaude', el)"
+        class="absolute bottom-10 right-32 z-30 transition-transform duration-300 hover:scale-110"
+      >
         <ProjectLogo 
           label="VLAUDE" 
           :path="icons.vlaude"
           color="#ff2a6d"
-          @hover="setProject('vlaude')"
-          @leave="resetText"
+          @mouseenter="handleHover('vlaude', '#ff2a6d')"
+          @mouseleave="handleLeave"
           @click="openLink('https://github.com/higuaifan/vlaude')"
         />
       </div>
@@ -65,7 +114,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, nextTick } from 'vue'
 
 // Project Data
 const defaultText = `> SYSTEM_INIT...
@@ -135,13 +184,64 @@ const icons = {
 }
 
 const currentText = ref(defaultText)
+const terminalRef = ref<HTMLElement | null>(null)
+const projectRefs = ref<Record<string, HTMLElement>>({})
+const connectionPath = ref('')
+const activeColor = ref('#00f3ff')
 
-const setProject = (key: keyof typeof projects) => {
-  currentText.value = projects[key]
+const setProjectRef = (key: string, el: any) => {
+  if (el) projectRefs.value[key] = el as HTMLElement
 }
 
-const resetText = () => {
+const handleHover = (key: keyof typeof projects, color: string) => {
+  currentText.value = projects[key]
+  activeColor.value = color
+  updateConnection(key)
+}
+
+const handleLeave = () => {
   currentText.value = defaultText
+  connectionPath.value = ''
+}
+
+const updateConnection = (key: string) => {
+  const terminal = terminalRef.value
+  const project = projectRefs.value[key]
+  
+  if (!terminal || !project) return
+
+  const tRect = terminal.getBoundingClientRect()
+  const pRect = project.getBoundingClientRect()
+  
+  // Let's get the container's rect to normalize
+  const container = terminal.parentElement // The relative z-10 container
+  if (!container) return
+  const cRect = container.getBoundingClientRect()
+
+  const endX = tRect.left + tRect.width / 2 - cRect.left
+  const endY = tRect.top + tRect.height / 2 - cRect.top
+
+  // Determine if we are left or right of terminal
+  // We use the center of the project to determine side, but start point is edge
+  const pCenterX = pRect.left + pRect.width / 2
+  const tCenterX = tRect.left + tRect.width / 2
+  const isLeft = pCenterX < tCenterX
+
+  // Start from the inner edge of the icon
+  const startX = isLeft 
+    ? pRect.right - cRect.left 
+    : pRect.left - cRect.left
+    
+  const startY = pRect.top + pRect.height / 2 - cRect.top
+
+  console.log('Connection Coords:', { startX, startY, endX, endY, cRect })
+
+  // Circuit path:
+  // M startX startY
+  // L endX startY  (Horizontal first)
+  // L endX endY    (Then Vertical)
+  
+  connectionPath.value = `M ${startX} ${startY} L ${endX} ${startY} L ${endX} ${endY}`
 }
 
 const openLink = (url: string) => {
