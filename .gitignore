@@ -22,3 +22,7 @@ logs
 .env
 .env.*
 !.env.example
+
+# Debug and test files
+debug-*.js
+test-*.js
