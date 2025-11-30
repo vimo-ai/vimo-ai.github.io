@@ -16,7 +16,7 @@
     <div 
       class="relative z-10 w-16 h-16 flex items-center justify-center transition-transform duration-300 border border-white/10 bg-cyber-black/80 backdrop-blur-sm"
       :class="[isActive ? 'scale-110 border-opacity-50' : 'group-hover:scale-110 group-hover:border-opacity-50']"
-      :style="{ borderColor: isActive ? color : '' }"
+      :style="{ borderColor: color }"
     >
       <!-- Corner Accents -->
       <div class="absolute -top-px -left-px w-2 h-2 border-t border-l border-white/30"></div>

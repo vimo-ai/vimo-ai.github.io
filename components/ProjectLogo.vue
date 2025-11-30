@@ -28,7 +28,7 @@
     <!-- Chip Body (Flat Cyberpunk) -->
     <div 
       class="absolute inset-2 bg-[#050505] border border-neon-cyan/30 backdrop-blur-sm"
-      :style="{ borderColor: isActive ? color : '#333', boxShadow: isActive ? `0 0 15px ${color}40` : 'none' }"
+      :style="{ borderColor: color, boxShadow: isActive ? `0 0 15px ${color}40` : 'none' }"
     >
       <!-- Corner Accents -->
       <div class="absolute top-0 left-0 w-2 h-2 border-t border-l border-white/50"></div>

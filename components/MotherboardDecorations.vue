@@ -244,52 +244,56 @@ const initCanvas = () => {
         let r = 1
         let alpha = 0.1
         let finalColor = { r: 255, g: 255, b: 255 } // 默认白色
+        const MOUSE_LIGHT_RADIUS = 175 // 鼠标光照半径
 
-        // 混合渲染：收集所有影响这个点的模块
-        if (nearbyModules.length > 0) {
+        // 计算当前点到鼠标的距离
+        const dxToMouse = x - mouseX.value
+        const dyToMouse = y - mouseY.value
+        const distanceToMouse = Math.sqrt(dxToMouse * dxToMouse + dyToMouse * dyToMouse)
+
+        // 只在鼠标光照半径内进行计算
+        if (distanceToMouse < MOUSE_LIGHT_RADIUS) {
           let totalWeight = 0
           let mixedR = 0, mixedG = 0, mixedB = 0
-          let maxIntensity = 0
+          let hasInfluence = false
 
-          for (const { module } of nearbyModules) {
-            // 计算点到模块的距离
-            const dx = x - module.x
-            const dy = y - module.y
-            const distanceToModule = Math.sqrt(dx * dx + dy * dy)
+          // 检查此点是否在任何在线模块的影响区域内
+          for (const module of onlineModules) {
+            const dxModule = x - module.x
+            const dyModule = y - module.y
+            const distanceToModule = Math.sqrt(dxModule * dxModule + dyModule * dyModule)
 
-            // 如果点在模块影响范围内
+            // 如果点在模块的影响范围内，则该模块贡献其颜色
             if (distanceToModule < MODULE_INFLUENCE_RADIUS) {
-              const intensity = 1 - distanceToModule / MODULE_INFLUENCE_RADIUS
-              const weight = intensity // 权重就是强度
+              hasInfluence = true
+              // 权重基于点到模块中心的距离（颜色混合更平滑）
+              const weight = Math.pow(1 - distanceToModule / MODULE_INFLUENCE_RADIUS, 2)
 
-              // 解析hex颜色
               const hex = module.color
               const moduleR = parseInt(hex.slice(1, 3), 16)
               const moduleG = parseInt(hex.slice(3, 5), 16)
               const moduleB = parseInt(hex.slice(5, 7), 16)
 
-              // 累加加权颜色
               mixedR += moduleR * weight
               mixedG += moduleG * weight
               mixedB += moduleB * weight
               totalWeight += weight
-
-              maxIntensity = Math.max(maxIntensity, intensity)
             }
           }
 
-          // 如果有模块影响这个点
-          if (totalWeight > 0) {
-            // 归一化颜色（加权平均）
+          // 如果点受到一个或多个模块的影响
+          if (hasInfluence && totalWeight > 0) {
+            // 最终颜色是所有影响模块的加权平均色
             finalColor = {
               r: Math.round(mixedR / totalWeight),
               g: Math.round(mixedG / totalWeight),
-              b: Math.round(mixedB / totalWeight)
+              b: Math.round(mixedB / totalWeight),
             }
 
-            // 根据最强的影响调整大小和透明度
-            r = 1 + maxIntensity * 1.2
-            alpha = 0.1 + maxIntensity * 0.5
+            // 点的亮度和大小由其到鼠标的距离决定
+            const intensity = 1 - distanceToMouse / MOUSE_LIGHT_RADIUS
+            r = 1 + intensity * 1.5
+            alpha = 0.1 + intensity * 0.6
           }
         }
 
