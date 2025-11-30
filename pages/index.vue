@@ -273,6 +273,39 @@
             @mouseleave="handleLeave"
           />
         </div>
+
+        <!-- System Core (Disconnected Vertical Chip) -->
+        <div
+          :ref="(el) => setProjectRef('sys_core', el)"
+          class="z-30 transition-all duration-500"
+          :class="[isMobile ? 'relative' : 'absolute']"
+          :style="isMobile ? {} : getModuleStyle('sys_core')"
+        >
+          <div 
+            class="w-full h-full border border-dashed border-[#444] hover:border-red-500/80 transition-colors duration-300 flex flex-col items-center justify-between py-4 cursor-pointer group bg-[#050505]/50 backdrop-blur-sm"
+            @mouseenter="handleHover('sys_core', '#ff0000')"
+            @mouseleave="handleLeave"
+          >
+            <!-- Top Indicator -->
+            <div class="w-1 h-1 bg-[#444] group-hover:bg-red-500 rounded-full shadow-[0_0_5px_currentColor] transition-colors duration-300"></div>
+            
+            <!-- Vertical Text -->
+            <div 
+              class="text-[10px] font-mono tracking-[0.3em] text-[#444] group-hover:text-red-500 transition-colors duration-300 select-none flex items-center gap-4"
+              style="writing-mode: vertical-rl; text-orientation: mixed;"
+            >
+              <span class="opacity-50">NO_SIGNAL</span>
+              <span class="font-bold">SYS_CORE_LEGACY</span>
+            </div>
+
+            <!-- Bottom Barcode/Details -->
+            <div class="flex flex-col gap-1 w-full px-3 opacity-30 group-hover:opacity-80 transition-opacity duration-300">
+              <div class="h-[1px] w-full bg-current text-[#444] group-hover:text-red-500"></div>
+              <div class="h-[1px] w-2/3 bg-current text-[#444] group-hover:text-red-500 self-end"></div>
+              <div class="h-[1px] w-full bg-current text-[#444] group-hover:text-red-500"></div>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -306,7 +339,8 @@ const moduleConfigs = [
   { id: 'about', width: 140, height: 140, preference: 'top-left' as const },
   { id: 'docs', width: 140, height: 140, preference: 'top-right' as const },
   { id: 'community', width: 140, height: 140, preference: 'bottom-left' as const },
-  { id: 'roadmap', width: 140, height: 140, preference: 'bottom-right' as const }
+  { id: 'roadmap', width: 140, height: 140, preference: 'bottom-right' as const },
+  { id: 'sys_core', width: 60, height: 240, preference: 'bottom-right' as const }
 ]
 
 // Computed styles for each module
@@ -448,7 +482,17 @@ Collaborate and share your configurations.`,
 Upcoming Features:
 - Advanced Plugin System
 - Cloud Sync V2
-- AI-Powered Debugging Assistant`
+- AI-Powered Debugging Assistant`,
+
+  sys_core: `> TARGET: UNKNOWN_CHIP
+> TYPE: LEGACY_HARDWARE
+> STATUS: OFFLINE
+
+[NO_CONNECTION_DETECTED]
+[MANUAL_OVERRIDE_REQUIRED]
+
+This module appears to be dormant.
+A relic from a previous iteration?`
 }
 
 // Complex SVG Paths (100x100 coordinate system)
@@ -475,7 +519,10 @@ const icons = {
   community: 'M50 30 A5 5 0 1 0 50 40 A5 5 0 1 0 50 30 M30 70 A5 5 0 1 0 30 80 A5 5 0 1 0 30 70 M70 70 A5 5 0 1 0 70 80 A5 5 0 1 0 70 70 M50 40 L30 70 M50 40 L70 70 M30 70 H70',
 
   // Roadmap: Timeline / Arrow
-  roadmap: 'M20 50 H80 M70 40 L80 50 L70 60 M30 40 V60 M50 40 V60'
+  roadmap: 'M20 50 H80 M70 40 L80 50 L70 60 M30 40 V60 M50 40 V60',
+
+  // Sys Core: BGA Chip
+  sys_core: 'M25 25 H75 V75 H25 Z M35 35 H65 V65 H35 Z M45 45 H55 V55 H45 Z M25 25 L15 15 M75 25 L85 15 M25 75 L15 85 M75 75 L85 85'
 }
 
 const currentText = ref(defaultText)
@@ -612,6 +659,7 @@ const calculatePath = (startRect: DOMRect, endRect: DOMRect, containerRect: DOMR
 
 const updateConnection = (key: string) => {
   if (isMobile.value) return
+  if (key === 'sys_core') return // No connection for disconnected chip
 
   const terminal = terminalRef.value
   const project = projectRefs.value[key]
@@ -673,6 +721,8 @@ const initBusLines = () => {
 
   // 按顺序生成每条线路
   for (const key in projects) {
+    if (key === 'sys_core') continue // Skip disconnected chip
+
     const project = projectRefs.value[key]
     if (project) {
       const pRect = project.getBoundingClientRect()
