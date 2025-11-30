@@ -7,12 +7,16 @@
   >
     <!-- Background Glow -->
     <div 
-      class="absolute inset-0 rounded-full blur-[40px] opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+      class="absolute inset-0 rounded-full blur-[40px] transition-opacity duration-500"
+      :class="[isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100']"
       :style="{ backgroundColor: `${color}0D` }"
     ></div>
     
     <!-- Icon Container -->
-    <div class="relative z-10 w-24 h-24 flex items-center justify-center transition-transform duration-300 group-hover:scale-110">
+    <div 
+      class="relative z-10 w-24 h-24 flex items-center justify-center transition-transform duration-300"
+      :class="[isActive ? 'scale-110' : 'group-hover:scale-110']"
+    >
       <!-- Main Icon Layer -->
       <svg 
         viewBox="0 0 100 100" 
@@ -30,7 +34,8 @@
       <!-- Glitch Layer 1 (Same Color) -->
       <svg 
         viewBox="0 0 100 100" 
-        class="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-50 group-hover:animate-glitch pointer-events-none"
+        class="absolute inset-0 w-full h-full pointer-events-none"
+        :class="[isActive ? 'opacity-50 animate-glitch' : 'opacity-0 group-hover:opacity-50 group-hover:animate-glitch']"
         :style="{ color: color }"
         fill="none" 
         stroke="currentColor" 
@@ -42,7 +47,8 @@
       <!-- Glitch Layer 2 (Violet) -->
       <svg 
         viewBox="0 0 100 100" 
-        class="absolute inset-0 w-full h-full text-neon-violet opacity-0 group-hover:opacity-50 group-hover:animate-glitch-reverse pointer-events-none"
+        class="absolute inset-0 w-full h-full text-neon-violet pointer-events-none"
+        :class="[isActive ? 'opacity-50 animate-glitch-reverse' : 'opacity-0 group-hover:opacity-50 group-hover:animate-glitch-reverse']"
         fill="none" 
         stroke="currentColor" 
         stroke-width="2"
@@ -52,7 +58,10 @@
     </div>
     
     <!-- Label with Glitch Effect -->
-    <div class="absolute -bottom-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+    <div 
+      class="absolute -bottom-10 transition-opacity duration-300"
+      :class="[isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100']"
+    >
       <GlitchText 
         :text="label" 
         :text-class="`font-orbitron font-bold tracking-widest text-sm`"
@@ -69,6 +78,7 @@ defineProps<{
   path: string
   label: string
   color: string
+  isActive?: boolean
 }>()
 
 defineEmits(['hover', 'leave', 'click'])

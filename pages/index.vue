@@ -14,6 +14,40 @@
           </filter>
         </defs>
         
+        <!-- Default Bus Lines (Faint) -->
+        <path
+          v-for="(path, key) in busPaths"
+          :key="key"
+          :d="path"
+          fill="none"
+          stroke="#666"
+          stroke-width="1"
+          class="opacity-60"
+          stroke-dasharray="4 4"
+        />
+
+        <!-- Dependency Line (MCP <-> Memex) -->
+        <path
+          v-if="dependencyPath"
+          :d="dependencyPath"
+          fill="none"
+          :stroke="dependencyActive ? '#39ff14' : '#666'"
+          :stroke-width="dependencyActive ? 2 : 1"
+          :class="dependencyActive ? 'opacity-100' : 'opacity-40'"
+          :filter="dependencyActive ? 'url(#glow-line)' : ''"
+          class="transition-all duration-300"
+        >
+          <animate
+            v-if="dependencyActive"
+            attributeName="stroke-dasharray"
+            from="0, 1000"
+            to="1000, 0"
+            dur="1s"
+            fill="freeze"
+          />
+        </path>
+
+        <!-- Active Connection Line -->
         <path
           v-if="connectionPath"
           :d="connectionPath"
@@ -32,11 +66,20 @@
           />
         </path>
         
-        <!-- Data Packet Animation -->
+        <!-- Data Packet Animation (Active Line) -->
         <circle v-if="connectionPath" r="3" :fill="activeColor">
           <animateMotion
             :path="connectionPath"
             dur="1.5s"
+            repeatCount="indefinite"
+          />
+        </circle>
+
+        <!-- Data Packet Animation (Dependency Line) -->
+        <circle v-if="dependencyActive && dependencyPath" r="2" fill="#39ff14">
+          <animateMotion
+            :path="dependencyPath"
+            dur="2s"
             repeatCount="indefinite"
           />
         </circle>
@@ -58,6 +101,7 @@
           label="MCP ROUTER" 
           :path="icons.mcp"
           color="#39ff14"
+          :is-active="activeProject === 'mcp' || linkedProject === 'mcp'"
           @mouseenter="handleHover('mcp', '#39ff14')"
           @mouseleave="handleLeave"
           @click="openLink('https://github.com/higuaifan/mcp-router')"
@@ -73,6 +117,7 @@
           label="MEMEX" 
           :path="icons.memex"
           color="#00f3ff"
+          :is-active="activeProject === 'memex'"
           @mouseenter="handleHover('memex', '#00f3ff')"
           @mouseleave="handleLeave"
           @click="openLink('https://github.com/higuaifan/memex')"
@@ -84,14 +129,17 @@
         :ref="(el) => setProjectRef('hooks', el)"
         class="absolute bottom-10 left-32 z-30 transition-transform duration-300 hover:scale-110"
       >
-        <ProjectLogo 
-          label="CLAUDE HOOKS" 
-          :path="icons.hooks"
-          color="#ff6b35"
-          @mouseenter="handleHover('hooks', '#ff6b35')"
-          @mouseleave="handleLeave"
-          @click="openLink('https://github.com/higuaifan/claude-hooks')"
-        />
+        <div class="relative">
+          <ProjectLogo 
+            label="CLAUDE HOOKS" 
+            :path="icons.hooks"
+            color="#ff6b35"
+            :is-active="activeProject === 'hooks'"
+            @mouseenter="handleHover('hooks', '#ff6b35')"
+            @mouseleave="handleLeave"
+            @click="openLink('https://github.com/higuaifan/claude-hooks')"
+          />
+        </div>
       </div>
 
       <!-- Bottom Right: Vlaude -->
@@ -99,14 +147,25 @@
         :ref="(el) => setProjectRef('vlaude', el)"
         class="absolute bottom-10 right-32 z-30 transition-transform duration-300 hover:scale-110"
       >
-        <ProjectLogo 
-          label="VLAUDE" 
-          :path="icons.vlaude"
-          color="#ff2a6d"
-          @mouseenter="handleHover('vlaude', '#ff2a6d')"
-          @mouseleave="handleLeave"
-          @click="openLink('https://github.com/higuaifan/vlaude')"
-        />
+        <div class="relative">
+          <!-- Ripple Animation for Vlaude -->
+          <div v-if="activeProject === 'vlaude'" class="absolute inset-0 pointer-events-none">
+             <div class="absolute inset-0 rounded-full border border-neon-pink opacity-60 animate-ping" style="animation-duration: 2s"></div>
+             <div class="absolute inset-0 rounded-full border border-neon-pink opacity-60 animate-ping" style="animation-delay: 0.5s; animation-duration: 2s"></div>
+             <div class="absolute inset-0 rounded-full border border-neon-pink opacity-60 animate-ping" style="animation-delay: 1s; animation-duration: 2s"></div>
+             <div class="absolute inset-0 rounded-full border border-neon-pink opacity-60 animate-ping" style="animation-delay: 1.5s; animation-duration: 2s"></div>
+          </div>
+
+          <ProjectLogo 
+            label="VLAUDE" 
+            :path="icons.vlaude"
+            color="#ff2a6d"
+            :is-active="activeProject === 'vlaude'"
+            @mouseenter="handleHover('vlaude', '#ff2a6d')"
+            @mouseleave="handleLeave"
+            @click="openLink('https://github.com/higuaifan/vlaude')"
+          />
+        </div>
       </div>
 
     </div>
@@ -114,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, onMounted, nextTick } from 'vue'
 
 // Project Data
 const defaultText = `> SYSTEM_INIT...
@@ -188,6 +247,12 @@ const terminalRef = ref<HTMLElement | null>(null)
 const projectRefs = ref<Record<string, HTMLElement>>({})
 const connectionPath = ref('')
 const activeColor = ref('#00f3ff')
+const activeProject = ref<string | null>(null)
+const linkedProject = ref<string | null>(null)
+
+const busPaths = ref<Record<string, string>>({})
+const dependencyPath = ref('')
+const dependencyActive = ref(false)
 
 const setProjectRef = (key: string, el: any) => {
   if (el) projectRefs.value[key] = el as HTMLElement
@@ -196,12 +261,34 @@ const setProjectRef = (key: string, el: any) => {
 const handleHover = (key: keyof typeof projects, color: string) => {
   currentText.value = projects[key]
   activeColor.value = color
+  activeProject.value = key
   updateConnection(key)
+
+  // Linkage Logic
+  if (key === 'memex') {
+    linkedProject.value = 'mcp'
+    dependencyActive.value = true
+  }
 }
 
 const handleLeave = () => {
   currentText.value = defaultText
   connectionPath.value = ''
+  activeProject.value = null
+  linkedProject.value = null
+  dependencyActive.value = false
+}
+
+const calculatePath = (startRect: DOMRect, endRect: DOMRect, containerRect: DOMRect, isLeft: boolean) => {
+  const startX = isLeft 
+    ? startRect.right - containerRect.left 
+    : startRect.left - containerRect.left
+  const startY = startRect.top + startRect.height / 2 - containerRect.top
+  
+  const endX = endRect.left + endRect.width / 2 - containerRect.left
+  const endY = endRect.top + endRect.height / 2 - containerRect.top
+
+  return `M ${startX} ${startY} L ${endX} ${startY} L ${endX} ${endY}`
 }
 
 const updateConnection = (key: string) => {
@@ -212,39 +299,75 @@ const updateConnection = (key: string) => {
 
   const tRect = terminal.getBoundingClientRect()
   const pRect = project.getBoundingClientRect()
-  
-  // Let's get the container's rect to normalize
-  const container = terminal.parentElement // The relative z-10 container
+  const container = terminal.parentElement
   if (!container) return
   const cRect = container.getBoundingClientRect()
 
-  const endX = tRect.left + tRect.width / 2 - cRect.left
-  const endY = tRect.top + tRect.height / 2 - cRect.top
-
-  // Determine if we are left or right of terminal
-  // We use the center of the project to determine side, but start point is edge
   const pCenterX = pRect.left + pRect.width / 2
   const tCenterX = tRect.left + tRect.width / 2
   const isLeft = pCenterX < tCenterX
 
-  // Start from the inner edge of the icon
-  const startX = isLeft 
-    ? pRect.right - cRect.left 
-    : pRect.left - cRect.left
-    
-  const startY = pRect.top + pRect.height / 2 - cRect.top
+  connectionPath.value = calculatePath(pRect, tRect, cRect, isLeft)
+}
 
-  console.log('Connection Coords:', { startX, startY, endX, endY, cRect })
-
-  // Circuit path:
-  // M startX startY
-  // L endX startY  (Horizontal first)
-  // L endX endY    (Then Vertical)
+const initBusLines = () => {
+  const terminal = terminalRef.value
+  const container = terminal?.parentElement
+  if (!terminal || !container) return
   
-  connectionPath.value = `M ${startX} ${startY} L ${endX} ${startY} L ${endX} ${endY}`
+  const tRect = terminal.getBoundingClientRect()
+  const cRect = container.getBoundingClientRect()
+  
+  console.log('Init Bus Lines', { tRect, cRect })
+
+  // Generate bus lines for all projects
+  for (const key in projects) {
+    const project = projectRefs.value[key]
+    if (project) {
+      const pRect = project.getBoundingClientRect()
+      const pCenterX = pRect.left + pRect.width / 2
+      const tCenterX = tRect.left + tRect.width / 2
+      const isLeft = pCenterX < tCenterX
+      
+      const path = calculatePath(pRect, tRect, cRect, isLeft)
+      console.log(`Bus Path for ${key}:`, path)
+      busPaths.value[key] = path
+    }
+  }
+
+  // Generate Dependency Line (MCP <-> Memex)
+  const mcp = projectRefs.value['mcp']
+  const memex = projectRefs.value['memex']
+  if (mcp && memex) {
+    const mRect = mcp.getBoundingClientRect()
+    const xRect = memex.getBoundingClientRect()
+    
+    // Path from MCP (Top Left) to Memex (Top Right)
+    // Let's route it above the terminal
+    const startX = mRect.right - cRect.left
+    const startY = mRect.top + mRect.height / 2 - cRect.top
+    
+    const endX = xRect.left - cRect.left
+    const endY = xRect.top + xRect.height / 2 - cRect.top
+    
+    // Arch path
+    dependencyPath.value = `M ${startX} ${startY} C ${startX + 100} ${startY}, ${endX - 100} ${endY}, ${endX} ${endY}`
+  }
 }
 
 const openLink = (url: string) => {
   window.open(url, '_blank')
 }
+
+onMounted(() => {
+  // Initialize bus lines after a short delay to ensure layout is stable
+  setTimeout(() => {
+    initBusLines()
+    // Force a re-render/check
+    nextTick(() => {
+      console.log('Bus Paths:', busPaths.value)
+    })
+  }, 1000)
+  window.addEventListener('resize', initBusLines)
+})
 </script>
