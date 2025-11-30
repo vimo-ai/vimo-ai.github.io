@@ -7,6 +7,18 @@ interface Rect {
   height: number
 }
 
+/**
+ * 伪随机数生成器（Seeded RNG）
+ * 相同种子产生相同的随机序列，实现幂等布局
+ */
+function createSeededRandom(seed: number) {
+  let state = seed
+  return () => {
+    state = (state * 1103515245 + 12345) & 0x7fffffff
+    return state / 0x7fffffff
+  }
+}
+
 interface Module {
   id: string
   width: number
@@ -101,7 +113,8 @@ function findBestPosition(
   module: Module,
   freeRects: FreeRectangle[],
   occupiedRects: Rect[],
-  padding = 30
+  padding = 30,
+  random: () => number = Math.random
 ): { x: number; y: number; rectIndex: number } | null {
   let bestPosition: { x: number; y: number; rectIndex: number } | null = null
   let bestScore = -Infinity
@@ -123,8 +136,8 @@ function findBestPosition(
     const candidates: { x: number; y: number }[] = []
 
     for (let j = 0; j < candidateCount; j++) {
-      const randomX = rect.x + Math.random() * safeRangeX
-      const randomY = rect.y + Math.random() * safeRangeY
+      const randomX = rect.x + random() * safeRangeX
+      const randomY = rect.y + random() * safeRangeY
       candidates.push({ x: randomX, y: randomY })
     }
 
@@ -155,7 +168,7 @@ function findBestPosition(
 
       if (!hasAnyCollision) {
         // 计算分数：轻微倾向偏好象限，但主要靠随机
-        let score = Math.random() * 100 // 主要靠随机
+        let score = random() * 100 // 主要靠随机
 
         // 偏好象限只给小权重（10%影响）
         if (module.preference) {
@@ -260,6 +273,10 @@ export function calculateLayout(
 ): LayoutResult {
   const margin = 75
   const padding = 30
+
+  // 创建伪随机数生成器（基于容器尺寸的种子，确保相同尺寸产生相同布局）
+  const seed = Math.round(containerWidth) * 10000 + Math.round(containerHeight)
+  const random = createSeededRandom(seed)
 
   // Terminal 初始居中
   let terminalX = (containerWidth - terminalWidth) / 2
