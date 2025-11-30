@@ -124,9 +124,9 @@
       <div :class="[isMobile ? 'grid grid-cols-2 gap-8 order-2' : 'contents']">
         
         <!-- MCP Router -->
-        <div 
+        <div
           :ref="(el) => setProjectRef('mcp', el)"
-          class="z-30 transition-transform duration-300 hover:scale-110"
+          class="z-30 transition-all duration-500 hover:scale-110"
           :class="[isMobile ? 'relative flex justify-center' : 'absolute']"
           :style="isMobile ? {} : getModuleStyle('mcp')"
         >
@@ -142,9 +142,9 @@
         </div>
 
         <!-- Memex -->
-        <div 
+        <div
           :ref="(el) => setProjectRef('memex', el)"
-          class="z-30 transition-transform duration-300 hover:scale-110"
+          class="z-30 transition-all duration-500 hover:scale-110"
           :class="[isMobile ? 'relative flex justify-center' : 'absolute']"
           :style="isMobile ? {} : getModuleStyle('memex')"
         >
@@ -160,9 +160,9 @@
         </div>
 
         <!-- Claude Hooks -->
-        <div 
+        <div
           :ref="(el) => setProjectRef('hooks', el)"
-          class="z-30 transition-transform duration-300 hover:scale-110"
+          class="z-30 transition-all duration-500 hover:scale-110"
           :class="[isMobile ? 'relative flex justify-center' : 'absolute']"
           :style="isMobile ? {} : getModuleStyle('hooks')"
         >
@@ -180,9 +180,9 @@
         </div>
 
         <!-- Vlaude -->
-        <div 
+        <div
           :ref="(el) => setProjectRef('vlaude', el)"
-          class="z-30 transition-transform duration-300 hover:scale-110"
+          class="z-30 transition-all duration-500 hover:scale-110"
           :class="[isMobile ? 'relative flex justify-center' : 'absolute']"
           :style="isMobile ? {} : getModuleStyle('vlaude')"
         >
@@ -218,9 +218,9 @@
       <div :class="[isMobile ? 'flex flex-wrap justify-center gap-6 order-3' : 'contents']">
 
         <!-- About -->
-        <div 
+        <div
           :ref="(el) => setProjectRef('about', el)"
-          class="z-30"
+          class="z-30 transition-all duration-500"
           :class="[isMobile ? 'relative' : 'absolute']"
           :style="isMobile ? {} : getModuleStyle('about')"
         >
@@ -235,9 +235,9 @@
         </div>
 
         <!-- Docs -->
-        <div 
+        <div
           :ref="(el) => setProjectRef('docs', el)"
-          class="z-30"
+          class="z-30 transition-all duration-500"
           :class="[isMobile ? 'relative' : 'absolute']"
           :style="isMobile ? {} : getModuleStyle('docs')"
         >
@@ -252,9 +252,9 @@
         </div>
 
         <!-- Community -->
-        <div 
+        <div
           :ref="(el) => setProjectRef('community', el)"
-          class="z-30"
+          class="z-30 transition-all duration-500"
           :class="[isMobile ? 'relative' : 'absolute']"
           :style="isMobile ? {} : getModuleStyle('community')"
         >
@@ -269,9 +269,9 @@
         </div>
 
         <!-- Roadmap -->
-        <div 
+        <div
           :ref="(el) => setProjectRef('roadmap', el)"
-          class="z-30"
+          class="z-30 transition-all duration-500"
           :class="[isMobile ? 'relative' : 'absolute']"
           :style="isMobile ? {} : getModuleStyle('roadmap')"
         >
