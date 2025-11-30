@@ -124,14 +124,6 @@
           />
         </circle>
 
-        <!-- Data Packet Animation (Dependency Line) -->
-        <circle v-if="dependencyActive && dependencyPath" r="2" fill="#39ff14">
-          <animateMotion
-            :path="dependencyPath"
-            dur="2s"
-            repeatCount="indefinite"
-          />
-        </circle>
       </svg>
 
       <!-- Central Terminal (CPU) -->
@@ -608,8 +600,6 @@ const linkedProject = ref<string | null>(null)
 let activationTimeout: NodeJS.Timeout | null = null
 
 const busPaths = ref<Record<string, string>>({})
-const dependencyPath = ref('')
-const dependencyActive = ref(false)
 
 const setProjectRef = (key: string, el: any) => {
   if (el) projectRefs.value[key] = el as HTMLElement
@@ -643,10 +633,6 @@ const handleHover = (key: keyof typeof projects, color: string) => {
       activeProject.value = key
       
       // Linkage Logic (only after activation)
-      if (key === 'memex') {
-        linkedProject.value = 'mcp'
-        dependencyActive.value = true
-      }
     }
   }, 600)
 }
@@ -656,7 +642,6 @@ const handleLeave = () => {
   activeProject.value = null
   activatingProject.value = null
   linkedProject.value = null
-  dependencyActive.value = false
   if (activationTimeout) clearTimeout(activationTimeout)
 }
 
@@ -848,37 +833,6 @@ const initBusLines = () => {
     }
   }
 
-  // Generate Dependency Line (MCP <-> Memex) - 也使用 A*
-  const mcp = projectRefs.value['mcp']
-  const memex = projectRefs.value['memex']
-  if (mcp && memex) {
-    const mRect = mcp.getBoundingClientRect()
-    const xRect = memex.getBoundingClientRect()
-
-    const startX = mRect.right - cRect.left
-    const startY = mRect.top + mRect.height / 2 - cRect.top
-    const endX = xRect.left - cRect.left
-    const endY = xRect.top + xRect.height / 2 - cRect.top
-
-    // 构建障碍物列表：排除 mcp 和 memex
-    const depObstacles: Array<{ x: number; y: number; width: number; height: number }> = []
-    for (const otherKey in allModuleRects) {
-      if (otherKey !== 'mcp' && otherKey !== 'memex') {
-        depObstacles.push(allModuleRects[otherKey])
-      }
-    }
-
-    const depPathPoints = findPath(
-      { x: startX, y: startY },
-      { x: endX, y: endY },
-      depObstacles,
-      50,
-      existingPaths
-    )
-
-    dependencyPath.value = pathToSVG(depPathPoints)
-  }
-  
   // Debug: Log all generated paths
   console.log('=== BUS PATHS GENERATED ===')
   console.log('Total paths:', Object.keys(busPaths.value).length)
@@ -1015,7 +969,6 @@ onMounted(async () => {
     if (!isMobile.value) {
       // Hide connection lines immediately during resize
       busPaths.value = {}
-      dependencyPath.value = ''
 
       // Debounce resize to avoid excessive recalculations
       clearTimeout(resizeTimeout)
