@@ -18,58 +18,67 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-
-interface ModuleCenter {
-  x: number
-  y: number
-  color: string
-}
-
-const props = defineProps<{
-  moduleCenters?: ModuleCenter[]
-}>()
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 
 const mouseX = ref(0)
 const mouseY = ref(0)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let animationFrameId: number
 
-// 计算鼠标当前靠近的模块
-const getNearestModule = (mouseProximityThreshold = 300) => {
-  if (!props.moduleCenters || props.moduleCenters.length === 0) {
-    return null
-  }
+// 计算光圈颜色（混合渲染 + DOM实时查询）
+const spotlightColor = computed(() => {
+  const MOUSE_PROXIMITY_THRESHOLD = 300
 
-  let nearestModule: { distance: number; module: ModuleCenter } | null = null
+  // 实时查询DOM获取所有在线模块
+  const moduleElements = document.querySelectorAll('[data-module]:not([data-module="sys_core"])')
+  const nearbyModules: Array<{ color: string; distance: number }> = []
 
-  for (const module of props.moduleCenters) {
-    const dx = mouseX.value - module.x
-    const dy = mouseY.value - module.y
-    const distance = Math.sqrt(dx * dx + dy * dy)
+  moduleElements.forEach((element) => {
+    const moduleColor = element.getAttribute('data-module-color')
+    // 只处理已经在线的模块
+    if (moduleColor && !element.classList.contains('grayscale')) {
+      const rect = element.getBoundingClientRect()
+      const centerX = rect.left + rect.width / 2
+      const centerY = rect.top + rect.height / 2
 
-    if (distance < mouseProximityThreshold) {
-      if (!nearestModule || distance < nearestModule.distance) {
-        nearestModule = { distance, module }
+      const dx = mouseX.value - centerX
+      const dy = mouseY.value - centerY
+      const distance = Math.sqrt(dx * dx + dy * dy)
+
+      if (distance < MOUSE_PROXIMITY_THRESHOLD) {
+        nearbyModules.push({ color: moduleColor, distance })
       }
     }
-  }
+  })
 
-  return nearestModule
-}
+  // 如果有靠近的模块，混合它们的颜色
+  if (nearbyModules.length > 0) {
+    let totalWeight = 0
+    let mixedR = 0, mixedG = 0, mixedB = 0
 
-// 计算光圈颜色（根据鼠标靠近的模块）
-const spotlightColor = computed(() => {
-  const nearest = getNearestModule(300)
+    for (const module of nearbyModules) {
+      const intensity = 1 - module.distance / MOUSE_PROXIMITY_THRESHOLD
+      const weight = intensity
 
-  if (nearest) {
-    // 根据距离计算不透明度（越近越亮）
-    const opacity = Math.max(0.06, 0.15 * (1 - nearest.distance / 300))
-    const hex = nearest.module.color
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${opacity})`
+      const hex = module.color
+      const r = parseInt(hex.slice(1, 3), 16)
+      const g = parseInt(hex.slice(3, 5), 16)
+      const b = parseInt(hex.slice(5, 7), 16)
+
+      mixedR += r * weight
+      mixedG += g * weight
+      mixedB += b * weight
+      totalWeight += weight
+    }
+
+    if (totalWeight > 0) {
+      const finalR = Math.round(mixedR / totalWeight)
+      const finalG = Math.round(mixedG / totalWeight)
+      const finalB = Math.round(mixedB / totalWeight)
+      const opacity = Math.max(0.06, 0.15 * (totalWeight / nearbyModules.length))
+
+      return `rgba(${finalR}, ${finalG}, ${finalB}, ${opacity})`
+    }
   }
 
   // 默认青色
@@ -194,9 +203,37 @@ const initCanvas = () => {
     const cols = Math.ceil(canvas.width / gridSize)
     const rows = Math.ceil(canvas.height / gridSize)
     const MODULE_INFLUENCE_RADIUS = 250 // 模块影响范围（像素）
+    const MOUSE_PROXIMITY_THRESHOLD = 300 // 鼠标感应范围
 
-    // 找到鼠标当前靠近的模块
-    const nearestModule = getNearestModule(300)
+    // 实时查询DOM获取所有在线模块的位置（修复resize问题）
+    const onlineModules: Array<{ x: number; y: number; color: string }> = []
+    const moduleElements = document.querySelectorAll('[data-module]:not([data-module="sys_core"])')
+
+    moduleElements.forEach((element) => {
+      const moduleColor = element.getAttribute('data-module-color')
+      // 只处理已经在线的模块（有颜色的）
+      if (moduleColor && !element.classList.contains('grayscale')) {
+        const rect = element.getBoundingClientRect()
+        onlineModules.push({
+          x: rect.left + rect.width / 2,
+          y: rect.top + rect.height / 2,
+          color: moduleColor
+        })
+      }
+    })
+
+    // 找到鼠标靠近的所有模块（多模块混合渲染）
+    const nearbyModules: Array<{ module: typeof onlineModules[0]; distanceToMouse: number }> = []
+
+    for (const module of onlineModules) {
+      const dx = mouseX.value - module.x
+      const dy = mouseY.value - module.y
+      const distance = Math.sqrt(dx * dx + dy * dy)
+
+      if (distance < MOUSE_PROXIMITY_THRESHOLD) {
+        nearbyModules.push({ module, distanceToMouse: distance })
+      }
+    }
 
     for (let i = 0; i <= cols; i++) {
       for (let j = 0; j <= rows; j++) {
@@ -206,32 +243,57 @@ const initCanvas = () => {
         // 默认值
         let r = 1
         let alpha = 0.1
-        let color = { r: 255, g: 255, b: 255 } // 默认白色
+        let finalColor = { r: 255, g: 255, b: 255 } // 默认白色
 
-        // 只有当鼠标靠近某个模块时，才显示那个模块周围的彩色辐射
-        if (nearestModule) {
-          // 计算点到鼠标靠近的模块的距离
-          const dx = x - nearestModule.module.x
-          const dy = y - nearestModule.module.y
-          const distanceToModule = Math.sqrt(dx * dx + dy * dy)
+        // 混合渲染：收集所有影响这个点的模块
+        if (nearbyModules.length > 0) {
+          let totalWeight = 0
+          let mixedR = 0, mixedG = 0, mixedB = 0
+          let maxIntensity = 0
 
-          // 如果点在模块影响范围内，使用模块颜色
-          if (distanceToModule < MODULE_INFLUENCE_RADIUS) {
-            const intensity = 1 - distanceToModule / MODULE_INFLUENCE_RADIUS
-            r = 1 + intensity * 1.2
-            alpha = 0.1 + intensity * 0.5
+          for (const { module } of nearbyModules) {
+            // 计算点到模块的距离
+            const dx = x - module.x
+            const dy = y - module.y
+            const distanceToModule = Math.sqrt(dx * dx + dy * dy)
 
-            // 解析hex颜色
-            const hex = nearestModule.module.color
-            color = {
-              r: parseInt(hex.slice(1, 3), 16),
-              g: parseInt(hex.slice(3, 5), 16),
-              b: parseInt(hex.slice(5, 7), 16)
+            // 如果点在模块影响范围内
+            if (distanceToModule < MODULE_INFLUENCE_RADIUS) {
+              const intensity = 1 - distanceToModule / MODULE_INFLUENCE_RADIUS
+              const weight = intensity // 权重就是强度
+
+              // 解析hex颜色
+              const hex = module.color
+              const moduleR = parseInt(hex.slice(1, 3), 16)
+              const moduleG = parseInt(hex.slice(3, 5), 16)
+              const moduleB = parseInt(hex.slice(5, 7), 16)
+
+              // 累加加权颜色
+              mixedR += moduleR * weight
+              mixedG += moduleG * weight
+              mixedB += moduleB * weight
+              totalWeight += weight
+
+              maxIntensity = Math.max(maxIntensity, intensity)
             }
+          }
+
+          // 如果有模块影响这个点
+          if (totalWeight > 0) {
+            // 归一化颜色（加权平均）
+            finalColor = {
+              r: Math.round(mixedR / totalWeight),
+              g: Math.round(mixedG / totalWeight),
+              b: Math.round(mixedB / totalWeight)
+            }
+
+            // 根据最强的影响调整大小和透明度
+            r = 1 + maxIntensity * 1.2
+            alpha = 0.1 + maxIntensity * 0.5
           }
         }
 
-        ctx.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${alpha})`
+        ctx.fillStyle = `rgba(${finalColor.r}, ${finalColor.g}, ${finalColor.b}, ${alpha})`
         ctx.beginPath()
         ctx.arc(x, y, r, 0, Math.PI * 2)
         ctx.fill()

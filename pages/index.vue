@@ -5,10 +5,7 @@
     <div class="fixed inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-0 pointer-events-none bg-[length:100%_2px,3px_100%] opacity-20"></div>
     
     <!-- Motherboard Decorations (Static Background Layer) -->
-    <MotherboardDecorations
-      v-if="!isMobile"
-      :module-centers="moduleCenters"
-    />
+    <MotherboardDecorations v-if="!isMobile" />
     <GlobalHUD v-if="!isMobile" />
 
     <!-- Main Container -->
@@ -153,6 +150,8 @@
         <!-- MCP Router -->
         <div
           :ref="(el) => setProjectRef('mcp', el)"
+          data-module="mcp"
+          :data-module-color="moduleColors['mcp']"
           class="z-30 transition-all duration-500 hover:scale-110"
           :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['mcp'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('mcp')"
@@ -171,6 +170,8 @@
         <!-- Memex -->
         <div
           :ref="(el) => setProjectRef('memex', el)"
+          data-module="memex"
+          :data-module-color="moduleColors['memex']"
           class="z-30 transition-all duration-500 hover:scale-110"
           :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['memex'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('memex')"
@@ -189,6 +190,8 @@
         <!-- Claude Hooks -->
         <div
           :ref="(el) => setProjectRef('hooks', el)"
+          data-module="hooks"
+          :data-module-color="moduleColors['hooks']"
           class="z-30 transition-all duration-500 hover:scale-110"
           :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['hooks'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('hooks')"
@@ -209,6 +212,8 @@
         <!-- Vlaude -->
         <div
           :ref="(el) => setProjectRef('vlaude', el)"
+          data-module="vlaude"
+          :data-module-color="moduleColors['vlaude']"
           class="z-30 transition-all duration-500 hover:scale-110"
           :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['vlaude'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('vlaude')"
@@ -247,6 +252,8 @@
         <!-- About -->
         <div
           :ref="(el) => setProjectRef('about', el)"
+          data-module="about"
+          :data-module-color="moduleColors['about']"
           class="z-30 transition-all duration-500"
           :class="[isMobile ? 'relative' : 'absolute', moduleStates['about'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('about')"
@@ -264,6 +271,8 @@
         <!-- Docs -->
         <div
           :ref="(el) => setProjectRef('docs', el)"
+          data-module="docs"
+          :data-module-color="moduleColors['docs']"
           class="z-30 transition-all duration-500"
           :class="[isMobile ? 'relative' : 'absolute', moduleStates['docs'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('docs')"
@@ -281,6 +290,8 @@
         <!-- Community -->
         <div
           :ref="(el) => setProjectRef('community', el)"
+          data-module="community"
+          :data-module-color="moduleColors['community']"
           class="z-30 transition-all duration-500"
           :class="[isMobile ? 'relative' : 'absolute', moduleStates['community'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('community')"
@@ -298,6 +309,8 @@
         <!-- Roadmap -->
         <div
           :ref="(el) => setProjectRef('roadmap', el)"
+          data-module="roadmap"
+          :data-module-color="moduleColors['roadmap']"
           class="z-30 transition-all duration-500"
           :class="[isMobile ? 'relative' : 'absolute', moduleStates['roadmap'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('roadmap')"
@@ -593,29 +606,6 @@ const activeProject = ref<string | null>(null)
 const activatingProject = ref<string | null>(null) // New state for animation
 const linkedProject = ref<string | null>(null)
 let activationTimeout: NodeJS.Timeout | null = null
-
-// Computed property to get module center positions for background coloring
-const moduleCenters = computed(() => {
-  const centers: Array<{ x: number; y: number; color: string }> = []
-
-  for (const [key, element] of Object.entries(projectRefs.value)) {
-    // 只对在线的模块计算中心点
-    if (element && moduleStates.value[key] === 'online') {
-      const rect = element.getBoundingClientRect()
-      const color = moduleColors[key]
-
-      if (color) {
-        centers.push({
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2,
-          color
-        })
-      }
-    }
-  }
-
-  return centers
-})
 
 const busPaths = ref<Record<string, string>>({})
 const dependencyPath = ref('')
