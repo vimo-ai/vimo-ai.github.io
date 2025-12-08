@@ -25,33 +25,83 @@ const mouseY = ref(0)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 let animationFrameId: number
 
-// 计算光圈颜色（混合渲染 + DOM实时查询）
-const spotlightColor = computed(() => {
-  const MOUSE_PROXIMITY_THRESHOLD = 300
+// ==================== 性能优化：模块位置缓存 ====================
+interface CachedModule {
+  x: number
+  y: number
+  color: string
+}
 
-  // 实时查询DOM获取所有在线模块
+const cachedModules = ref<CachedModule[]>([])
+let moduleCacheTimer: number | null = null
+
+// 更新模块位置缓存（只在需要时调用，不是每帧）
+const updateModuleCache = () => {
   const moduleElements = document.querySelectorAll('[data-module]:not([data-module="sys_core"])')
-  const nearbyModules: Array<{ color: string; distance: number }> = []
+  const modules: CachedModule[] = []
 
   moduleElements.forEach((element) => {
     const moduleColor = element.getAttribute('data-module-color')
-    // 只处理已经在线的模块
     if (moduleColor && !element.classList.contains('grayscale')) {
       const rect = element.getBoundingClientRect()
-      const centerX = rect.left + rect.width / 2
-      const centerY = rect.top + rect.height / 2
-
-      const dx = mouseX.value - centerX
-      const dy = mouseY.value - centerY
-      const distance = Math.sqrt(dx * dx + dy * dy)
-
-      if (distance < MOUSE_PROXIMITY_THRESHOLD) {
-        nearbyModules.push({ color: moduleColor, distance })
-      }
+      modules.push({
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2,
+        color: moduleColor
+      })
     }
   })
 
-  // 如果有靠近的模块，混合它们的颜色
+  cachedModules.value = modules
+}
+
+// 启动模块缓存定时更新（每 500ms 更新一次，而不是每帧 60 次）
+const startModuleCacheUpdater = () => {
+  updateModuleCache()
+  moduleCacheTimer = window.setInterval(updateModuleCache, 500)
+}
+
+const stopModuleCacheUpdater = () => {
+  if (moduleCacheTimer !== null) {
+    clearInterval(moduleCacheTimer)
+    moduleCacheTimer = null
+  }
+}
+
+// ==================== 性能优化：mousemove 节流 ====================
+let lastMouseMoveTime = 0
+const MOUSE_THROTTLE_MS = 16 // ~60fps，但实际会被 rAF 进一步限制
+
+const handleMouseMove = (e: MouseEvent) => {
+  const now = performance.now()
+  if (now - lastMouseMoveTime < MOUSE_THROTTLE_MS) return
+  lastMouseMoveTime = now
+
+  mouseX.value = e.clientX
+  mouseY.value = e.clientY
+}
+
+// ==================== 计算光圈颜色（使用缓存） ====================
+const spotlightColor = computed(() => {
+  const MOUSE_PROXIMITY_THRESHOLD = 300
+  const modules = cachedModules.value
+
+  if (modules.length === 0) {
+    return 'rgba(0, 243, 255, 0.06)'
+  }
+
+  const nearbyModules: Array<{ color: string; distance: number }> = []
+
+  for (const module of modules) {
+    const dx = mouseX.value - module.x
+    const dy = mouseY.value - module.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+
+    if (distance < MOUSE_PROXIMITY_THRESHOLD) {
+      nearbyModules.push({ color: module.color, distance })
+    }
+  }
+
   if (nearbyModules.length > 0) {
     let totalWeight = 0
     let mixedR = 0, mixedG = 0, mixedB = 0
@@ -81,15 +131,8 @@ const spotlightColor = computed(() => {
     }
   }
 
-  // 默认青色
   return 'rgba(0, 243, 255, 0.06)'
 })
-
-// Track mouse position
-const handleMouseMove = (e: MouseEvent) => {
-  mouseX.value = e.clientX
-  mouseY.value = e.clientY
-}
 
 interface Point {
   x: number
@@ -187,158 +230,155 @@ const initCanvas = () => {
     }
   }
 
-  const resize = () => {
-    canvas.width = window.innerWidth
-    canvas.height = window.innerHeight
-    generateTraces(canvas.width, canvas.height)
-  }
-  window.addEventListener('resize', resize)
-  resize()
+  // ==================== 性能优化：离屏 Canvas 缓存静态内容 ====================
+  let staticCanvas: OffscreenCanvas | HTMLCanvasElement
+  let staticCtx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D | null = null
 
-  const render = () => {
-    if (!ctx) return
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-
-    // 1. Draw Grid Dots
-    const cols = Math.ceil(canvas.width / gridSize)
-    const rows = Math.ceil(canvas.height / gridSize)
-    const MODULE_INFLUENCE_RADIUS = 250 // 模块影响范围（像素）
-    const MOUSE_PROXIMITY_THRESHOLD = 300 // 鼠标感应范围
-
-    // 实时查询DOM获取所有在线模块的位置（修复resize问题）
-    const onlineModules: Array<{ x: number; y: number; color: string }> = []
-    const moduleElements = document.querySelectorAll('[data-module]:not([data-module="sys_core"])')
-
-    moduleElements.forEach((element) => {
-      const moduleColor = element.getAttribute('data-module-color')
-      // 只处理已经在线的模块（有颜色的）
-      if (moduleColor && !element.classList.contains('grayscale')) {
-        const rect = element.getBoundingClientRect()
-        onlineModules.push({
-          x: rect.left + rect.width / 2,
-          y: rect.top + rect.height / 2,
-          color: moduleColor
-        })
-      }
-    })
-
-    // 找到鼠标靠近的所有模块（多模块混合渲染）
-    const nearbyModules: Array<{ module: typeof onlineModules[0]; distanceToMouse: number }> = []
-
-    for (const module of onlineModules) {
-      const dx = mouseX.value - module.x
-      const dy = mouseY.value - module.y
-      const distance = Math.sqrt(dx * dx + dy * dy)
-
-      if (distance < MOUSE_PROXIMITY_THRESHOLD) {
-        nearbyModules.push({ module, distanceToMouse: distance })
-      }
+  const renderStaticLayer = (width: number, height: number) => {
+    // 创建离屏 Canvas（如果浏览器支持）
+    if (typeof OffscreenCanvas !== 'undefined') {
+      staticCanvas = new OffscreenCanvas(width, height)
+    } else {
+      staticCanvas = document.createElement('canvas')
+      staticCanvas.width = width
+      staticCanvas.height = height
     }
+    staticCtx = staticCanvas.getContext('2d')
+    if (!staticCtx) return
 
+    // 清除背景（透明）
+    staticCtx.clearRect(0, 0, width, height)
+
+    const cols = Math.ceil(width / gridSize)
+    const rows = Math.ceil(height / gridSize)
+
+    // 只绘制静态点阵（走线和电容移除，保持背景简洁）
+    staticCtx.fillStyle = 'rgba(255, 255, 255, 0.1)'
     for (let i = 0; i <= cols; i++) {
       for (let j = 0; j <= rows; j++) {
         const x = i * gridSize
         const y = j * gridSize
+        staticCtx.beginPath()
+        staticCtx.arc(x, y, 1, 0, Math.PI * 2)
+        staticCtx.fill()
+      }
+    }
+  }
 
-        // 默认值
-        let r = 1
-        let alpha = 0.1
-        let finalColor = { r: 255, g: 255, b: 255 } // 默认白色
-        const MOUSE_LIGHT_RADIUS = 175 // 鼠标光照半径
+  const resize = () => {
+    canvas.width = window.innerWidth
+    canvas.height = window.innerHeight
+    generateTraces(canvas.width, canvas.height)
+    // 重新渲染静态层
+    renderStaticLayer(canvas.width, canvas.height)
+  }
+  window.addEventListener('resize', resize)
+  resize()
 
-        // 计算当前点到鼠标的距离
-        const dxToMouse = x - mouseX.value
-        const dyToMouse = y - mouseY.value
-        const distanceToMouse = Math.sqrt(dxToMouse * dxToMouse + dyToMouse * dyToMouse)
+  // ==================== 性能优化：预计算模块颜色 RGB 值 ====================
+  interface ParsedModule {
+    x: number
+    y: number
+    r: number
+    g: number
+    b: number
+  }
 
-        // 只在鼠标光照半径内进行计算
-        if (distanceToMouse < MOUSE_LIGHT_RADIUS) {
-          let totalWeight = 0
-          let mixedR = 0, mixedG = 0, mixedB = 0
-          let hasInfluence = false
+  // 解析 hex 颜色为 RGB（避免每帧重复解析）
+  const parseModuleColors = (modules: CachedModule[]): ParsedModule[] => {
+    return modules.map(m => ({
+      x: m.x,
+      y: m.y,
+      r: parseInt(m.color.slice(1, 3), 16),
+      g: parseInt(m.color.slice(3, 5), 16),
+      b: parseInt(m.color.slice(5, 7), 16)
+    }))
+  }
 
-          // 检查此点是否在任何在线模块的影响区域内
-          for (const module of onlineModules) {
-            const dxModule = x - module.x
-            const dyModule = y - module.y
-            const distanceToModule = Math.sqrt(dxModule * dxModule + dyModule * dyModule)
+  const render = () => {
+    if (!ctx) return
 
-            // 如果点在模块的影响范围内，则该模块贡献其颜色
-            if (distanceToModule < MODULE_INFLUENCE_RADIUS) {
-              hasInfluence = true
-              // 权重基于点到模块中心的距离（颜色混合更平滑）
-              const weight = Math.pow(1 - distanceToModule / MODULE_INFLUENCE_RADIUS, 2)
+    // 每帧必须先清除画布，否则动态内容会叠加
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
 
-              const hex = module.color
-              const moduleR = parseInt(hex.slice(1, 3), 16)
-              const moduleG = parseInt(hex.slice(3, 5), 16)
-              const moduleB = parseInt(hex.slice(5, 7), 16)
+    // 复制静态层（点阵）
+    if (staticCanvas) {
+      ctx.drawImage(staticCanvas as CanvasImageSource, 0, 0)
+    }
 
-              mixedR += moduleR * weight
-              mixedG += moduleG * weight
-              mixedB += moduleB * weight
-              totalWeight += weight
-            }
-          }
+    // 常量
+    const cols = Math.ceil(canvas.width / gridSize)
+    const rows = Math.ceil(canvas.height / gridSize)
+    const MODULE_INFLUENCE_RADIUS = 250
+    const MODULE_INFLUENCE_RADIUS_SQ = MODULE_INFLUENCE_RADIUS * MODULE_INFLUENCE_RADIUS
+    const MOUSE_LIGHT_RADIUS = 175
+    const MOUSE_LIGHT_RADIUS_SQ = MOUSE_LIGHT_RADIUS * MOUSE_LIGHT_RADIUS
 
-          // 如果点受到一个或多个模块的影响
-          if (hasInfluence && totalWeight > 0) {
-            // 最终颜色是所有影响模块的加权平均色
-            finalColor = {
-              r: Math.round(mixedR / totalWeight),
-              g: Math.round(mixedG / totalWeight),
-              b: Math.round(mixedB / totalWeight),
-            }
+    // ==================== 性能优化：使用缓存的模块数据 ====================
+    const onlineModules = parseModuleColors(cachedModules.value)
 
-            // 点的亮度和大小由其到鼠标的距离决定
-            const intensity = 1 - distanceToMouse / MOUSE_LIGHT_RADIUS
-            r = 1 + intensity * 1.5
-            alpha = 0.1 + intensity * 0.6
+    // ==================== 性能优化：计算鼠标影响区域边界 ====================
+    const mx = mouseX.value
+    const my = mouseY.value
+
+    // 只渲染鼠标附近的点（空间分区优化）
+    const minCol = Math.max(0, Math.floor((mx - MOUSE_LIGHT_RADIUS) / gridSize))
+    const maxCol = Math.min(cols, Math.ceil((mx + MOUSE_LIGHT_RADIUS) / gridSize))
+    const minRow = Math.max(0, Math.floor((my - MOUSE_LIGHT_RADIUS) / gridSize))
+    const maxRow = Math.min(rows, Math.ceil((my + MOUSE_LIGHT_RADIUS) / gridSize))
+
+    // ==================== 绘制鼠标附近的动态高亮点 ====================
+    for (let i = minCol; i <= maxCol; i++) {
+      for (let j = minRow; j <= maxRow; j++) {
+        const x = i * gridSize
+        const y = j * gridSize
+
+        const dxToMouse = x - mx
+        const dyToMouse = y - my
+        const distanceToMouseSq = dxToMouse * dxToMouse + dyToMouse * dyToMouse
+
+        if (distanceToMouseSq >= MOUSE_LIGHT_RADIUS_SQ) continue
+
+        const distanceToMouse = Math.sqrt(distanceToMouseSq)
+
+        let totalWeight = 0
+        let mixedR = 0, mixedG = 0, mixedB = 0
+        let hasInfluence = false
+
+        for (let k = 0; k < onlineModules.length; k++) {
+          const module = onlineModules[k]
+          const dxModule = x - module.x
+          const dyModule = y - module.y
+          const distanceToModuleSq = dxModule * dxModule + dyModule * dyModule
+
+          if (distanceToModuleSq < MODULE_INFLUENCE_RADIUS_SQ) {
+            hasInfluence = true
+            const distanceToModule = Math.sqrt(distanceToModuleSq)
+            const weight = Math.pow(1 - distanceToModule / MODULE_INFLUENCE_RADIUS, 2)
+
+            mixedR += module.r * weight
+            mixedG += module.g * weight
+            mixedB += module.b * weight
+            totalWeight += weight
           }
         }
 
-        ctx.fillStyle = `rgba(${finalColor.r}, ${finalColor.g}, ${finalColor.b}, ${alpha})`
-        ctx.beginPath()
-        ctx.arc(x, y, r, 0, Math.PI * 2)
-        ctx.fill()
+        if (hasInfluence && totalWeight > 0) {
+          const finalR = Math.round(mixedR / totalWeight)
+          const finalG = Math.round(mixedG / totalWeight)
+          const finalB = Math.round(mixedB / totalWeight)
+
+          const intensity = 1 - distanceToMouse / MOUSE_LIGHT_RADIUS
+          const r = 1 + intensity * 1.5
+          const alpha = 0.1 + intensity * 0.6
+
+          ctx.fillStyle = `rgba(${finalR}, ${finalG}, ${finalB}, ${alpha})`
+          ctx.beginPath()
+          ctx.arc(x, y, r, 0, Math.PI * 2)
+          ctx.fill()
+        }
       }
     }
-
-    // 2. Draw Faint Traces
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)'
-    ctx.lineWidth = 1
-    traces.forEach(trace => {
-      ctx.beginPath()
-      ctx.moveTo(trace.path[0].x, trace.path[0].y)
-      for (let i = 1; i < trace.path.length; i++) {
-        ctx.lineTo(trace.path[i].x, trace.path[i].y)
-      }
-      ctx.stroke()
-    })
-
-    // 3. Draw Capacitors
-    capacitors.forEach(cap => {
-      ctx.fillStyle = '#222' // Body
-      ctx.strokeStyle = '#444' // Border
-      ctx.lineWidth = 1
-      
-      const w = cap.orientation === 'h' ? cap.size : cap.size / 2
-      const h = cap.orientation === 'h' ? cap.size / 2 : cap.size
-      
-      // Draw Body
-      ctx.fillRect(cap.x - w/2, cap.y - h/2, w, h)
-      ctx.strokeRect(cap.x - w/2, cap.y - h/2, w, h)
-      
-      // Draw Terminals (Silver ends)
-      ctx.fillStyle = '#555'
-      if (cap.orientation === 'h') {
-        ctx.fillRect(cap.x - w/2, cap.y - h/2, 2, h) // Left
-        ctx.fillRect(cap.x + w/2 - 2, cap.y - h/2, 2, h) // Right
-      } else {
-        ctx.fillRect(cap.x - w/2, cap.y - h/2, w, 2) // Top
-        ctx.fillRect(cap.x - w/2, cap.y + h/2 - 2, w, 2) // Bottom
-      }
-    })
 
     // 4. Manage and Draw Packets
     // Spawn new packets occasionally
@@ -420,11 +460,13 @@ const initCanvas = () => {
 
 onMounted(() => {
   window.addEventListener('mousemove', handleMouseMove)
+  startModuleCacheUpdater()
   initCanvas()
 })
 
 onUnmounted(() => {
   window.removeEventListener('mousemove', handleMouseMove)
+  stopModuleCacheUpdater()
   if (animationFrameId) cancelAnimationFrame(animationFrameId)
 })
 </script>

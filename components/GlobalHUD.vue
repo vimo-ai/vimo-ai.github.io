@@ -38,7 +38,15 @@ const mouseX = ref(0)
 const mouseY = ref(0)
 const hexLines = ref<string[]>([])
 
+// ==================== 性能优化：mousemove 节流 ====================
+let lastMouseMoveTime = 0
+const MOUSE_THROTTLE_MS = 50 // HUD 不需要高频更新
+
 const updateMouse = (e: MouseEvent) => {
+  const now = performance.now()
+  if (now - lastMouseMoveTime < MOUSE_THROTTLE_MS) return
+  lastMouseMoveTime = now
+
   mouseX.value = e.clientX
   mouseY.value = e.clientY
 }
@@ -53,17 +61,18 @@ const generateHex = () => {
   return `0x${str}`
 }
 
-let intervalId: NodeJS.Timeout
+let intervalId: ReturnType<typeof setInterval>
 
 onMounted(() => {
   window.addEventListener('mousemove', updateMouse)
-  
-  // Update Hex stream
+
+  // ==================== 性能优化：降低更新频率 ====================
+  // 从 80ms (12.5fps) 改为 200ms (5fps)，视觉效果几乎无差别
   intervalId = setInterval(() => {
     const newHex = generateHex()
     hexLines.value.push(newHex)
     if (hexLines.value.length > 5) hexLines.value.shift()
-  }, 80)
+  }, 200)
 })
 
 onUnmounted(() => {
