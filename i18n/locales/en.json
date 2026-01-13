@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "home": "Home",
+    "docs": "Docs",
+    "about": "About",
+    "community": "Community",
+    "roadmap": "Roadmap"
+  },
+  "docs": {
+    "sidebar": {
+      "getting_started": "Getting Started",
+      "architecture": "Architecture",
+      "tech_deep_dive": "Tech Deep-dive",
+      "api_reference": "API Reference",
+      "mcp_integration": "MCP Integration"
+    }
+  },
+  "common": {
+    "language": "Language",
+    "search": "Search",
+    "on_this_page": "On this page",
+    "edit_on_github": "Edit on GitHub",
+    "last_updated": "Last updated"
+  }
+}

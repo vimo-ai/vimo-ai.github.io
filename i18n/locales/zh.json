@@ -1,0 +1,25 @@
+{
+  "nav": {
+    "home": "首页",
+    "docs": "文档",
+    "about": "关于",
+    "community": "社区",
+    "roadmap": "路线图"
+  },
+  "docs": {
+    "sidebar": {
+      "getting_started": "快速开始",
+      "architecture": "代码架构",
+      "tech_deep_dive": "底层技术",
+      "api_reference": "API 参考",
+      "mcp_integration": "MCP 集成"
+    }
+  },
+  "common": {
+    "language": "语言",
+    "search": "搜索",
+    "on_this_page": "本页目录",
+    "edit_on_github": "在 GitHub 上编辑",
+    "last_updated": "最后更新"
+  }
+}
