@@ -269,13 +269,14 @@
           :class="[isMobile ? 'relative' : 'absolute', moduleStates['docs'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('docs')"
         >
-          <ContentChip 
-            label="DOCS" 
+          <ContentChip
+            label="DOCS"
             :path="icons.docs"
             :color="moduleStates['docs'] === 'online' || activeProject === 'docs' ? '#ffffff' : '#444444'"
             :is-active="activeProject === 'docs'"
             @mouseenter="handleHover('docs', '#ffffff')"
             @mouseleave="handleLeave"
+            @click="navigateTo('/docs/memex')"
           />
         </div>
 
