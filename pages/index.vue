@@ -155,7 +155,7 @@
             :is-active="activeProject === 'mcp' || linkedProject === 'mcp'"
             @mouseenter="handleHover('mcp', '#39ff14')"
             @mouseleave="handleLeave"
-            @click="openLink('https://github.com/higuaifan/mcp-router')"
+            @click="openLink('https://github.com/vimo-ai/mcp-router')"
           />
         </div>
 
@@ -175,7 +175,7 @@
             :is-active="activeProject === 'memex'"
             @mouseenter="handleHover('memex', '#00f3ff')"
             @mouseleave="handleLeave"
-            @click="openLink('https://github.com/higuaifan/memex')"
+            @click="openLink('https://github.com/vimo-ai/memex')"
           />
         </div>
 
@@ -196,7 +196,7 @@
               :is-active="activeProject === 'hooks'"
               @mouseenter="handleHover('hooks', '#ff6b35')"
               @mouseleave="handleLeave"
-              @click="openLink('https://github.com/higuaifan/claude-hooks')"
+              @click="openLink('https://github.com/vimo-ai/claude-hooks')"
             />
           </div>
         </div>
@@ -232,7 +232,7 @@
               :is-active="activeProject === 'vlaude'"
               @mouseenter="handleHover('vlaude', '#ff2a6d')"
               @mouseleave="handleLeave"
-              @click="openLink('https://github.com/higuaifan/vlaude')"
+              @click="openLink('https://github.com/vimo-ai/vlaude')"
             />
           </div>
         </div>
