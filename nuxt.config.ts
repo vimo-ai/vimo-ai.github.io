@@ -33,8 +33,12 @@ export default defineNuxtConfig({
 
   // Content 配置
   content: {
-    highlight: {
-      theme: 'github-dark'
+    build: {
+      markdown: {
+        highlight: {
+          theme: 'vitesse-black'
+        }
+      }
     }
   },
 

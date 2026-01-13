@@ -149,9 +149,16 @@ const toc = computed(() => {
 .prose ul { @apply list-disc list-inside text-gray-300 mb-4; }
 .prose ol { @apply list-decimal list-inside text-gray-300 mb-4; }
 .prose li { @apply mb-2; }
-.prose code { @apply bg-gray-800 px-1.5 py-0.5 rounded text-neon-cyan text-sm; }
-.prose pre { @apply bg-gray-900 p-4 rounded-lg overflow-x-auto mb-4; }
-.prose pre code { @apply bg-transparent p-0; }
+.prose code { @apply bg-gray-800/50 px-1.5 py-0.5 rounded text-sm border border-gray-700/40 text-neon-cyan; }
+.prose pre { @apply p-4 rounded-lg overflow-x-auto mb-4 border border-gray-700/50; }
+.prose pre code {
+  @apply bg-transparent p-0 border-0;
+  color: rgb(103 232 249); /* cyan-300 作为默认色 */
+}
+/* Shiki 的 span 保持自己的颜色 */
+.prose pre code .line span[style] {
+  color: var(--shiki-color) !important;
+}
 .prose table { @apply w-full border-collapse mb-4; }
 .prose th { @apply bg-gray-800 px-4 py-2 text-left border border-gray-700; }
 .prose td { @apply px-4 py-2 border border-gray-700; }
