@@ -14,8 +14,11 @@ Memex is configured via environment variables. All settings have sensible defaul
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `10013` | HTTP server port |
-| `VIMO_HOME` | `~/.vimo` | Base data directory (SQLite, LanceDB, backups) |
+| `VIMO_HOME` | `~/.vimo` | Base directory for all Vimo data |
+| `MEMEX_DATA_DIR` | `~/.vimo/db` | Data directory (LanceDB, backups, archive) |
+| `MEMEX_WEB_DIR` | `~/.vimo/memex/web` | Web frontend static files |
 | `CLAUDE_PROJECTS_PATH` | `~/.claude/projects` | Claude Code session data location |
+| `CODEX_PATH` | `~/.codex` | Codex CLI data location |
 | `OLLAMA_API` | `http://localhost:11434` | Ollama API endpoint |
 | `EMBEDDING_MODEL` | `bge-m3` | Ollama model for embeddings |
 | `CHAT_MODEL` | `qwen3:8b` | Ollama model for AI Q&A |
@@ -23,18 +26,20 @@ Memex is configured via environment variables. All settings have sensible defaul
 
 ## Data Paths
 
-Memex uses these directories:
+Memex separates data storage from web frontend:
 
 | Path | Description |
 |------|-------------|
 | `{VIMO_HOME}/db/ai-cli-session.db` | SQLite database (shared with other Vimo tools) |
 | `{VIMO_HOME}/db/lancedb/` | LanceDB vector store |
 | `{VIMO_HOME}/db/backups/` | Database backups |
+| `{VIMO_HOME}/db/archive/` | Session archives |
+| `{VIMO_HOME}/memex/web/` | Web frontend static files |
 | `{CLAUDE_PROJECTS_PATH}/` | Claude Code session JSONL files (source) |
 
-**For most users**: Just set `VIMO_HOME` (default: `~/.vimo`). All data goes under `{VIMO_HOME}/db/`.
+**Architecture**: Database (`~/.vimo/db/`) is shared across Vimo tools. Web UI (`~/.vimo/memex/web/`) is Memex-specific.
 
-**Advanced**: If you need to store LanceDB/backups separately from SQLite, set `MEMEX_DATA_DIR`.
+**For most users**: Just set `VIMO_HOME` (default: `~/.vimo`). Everything works automatically.
 
 ## Minimal Setup
 
@@ -97,9 +102,11 @@ Pass environment variables to Docker:
 ```bash
 docker run -d \
   -p 10013:10013 \
-  -v ~/.claude:/data/claude \
-  -v ~/.vimo:/data/vimo \
-  -e VIMO_HOME=/data/vimo \
+  -v ~/.claude:/data/claude:ro \
+  -v ~/.vimo/db:/data/db \
+  -v ~/.vimo/memex/web:/data/web:ro \
+  -e MEMEX_DATA_DIR=/data/db \
+  -e MEMEX_WEB_DIR=/data/web \
   -e CLAUDE_PROJECTS_PATH=/data/claude/projects \
   -e OLLAMA_API=http://host.docker.internal:11434 \
   -e EMBEDDING_MODEL=bge-m3 \
@@ -108,11 +115,12 @@ docker run -d \
   ghcr.io/vimo-ai/memex:latest
 ```
 
-**Path mapping is required**: The container sees `/data/claude` and `/data/vimo`, not your host paths.
+**Path mapping**:
+- `MEMEX_DATA_DIR=/data/db` - Database, LanceDB, backups (read-write)
+- `MEMEX_WEB_DIR=/data/web` - Web frontend (read-only, built separately)
+- `CLAUDE_PROJECTS_PATH=/data/claude/projects` - Session source (read-only)
 
 **Linux note**: `host.docker.internal` works on Docker Desktop (macOS/Windows). On native Linux, use `--add-host=host.docker.internal:host-gateway` or your host's IP address.
-- `VIMO_HOME=/data/vimo` - Sets base directory for SQLite, LanceDB, and backups
-- `CLAUDE_PROJECTS_PATH=/data/claude/projects` - Where to find Claude Code sessions
 
 ## Model Recommendations
 
@@ -177,9 +185,17 @@ curl http://localhost:10013/api/embedding/status
 
 ### Database location
 
-The SQLite database is at `{VIMO_HOME}/db/ai-cli-session.db` (default: `~/.vimo/db/ai-cli-session.db`). This is controlled by `VIMO_HOME`, not `MEMEX_DATA_DIR`, to ensure shared access with other Vimo tools.
+The SQLite database is at `{VIMO_HOME}/db/ai-cli-session.db` (default: `~/.vimo/db/ai-cli-session.db`). This is shared with other Vimo tools.
 
-For Docker: set `VIMO_HOME=/data/vimo` to match the volume mount.
+For Docker: set `MEMEX_DATA_DIR=/data/db` and mount `~/.vimo/db:/data/db`.
+
+### Web UI not loading
+
+If the web UI shows blank:
+1. Check web directory exists: `ls ~/.vimo/memex/web/`
+2. Should contain `index.html` and `assets/`
+3. Build frontend: `cd memex/web && pnpm build`
+4. Deploy: `./scripts/build.sh memex`
 
 ### No sessions showing up
 

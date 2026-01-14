@@ -1,21 +1,30 @@
 ---
 title: Memex
-description: Claude Code Session History Manager
+description: Claude Code Session History Manager - On-demand retrieval, precise recall
 navigation:
   order: 1
 ---
 
 # Memex
 
-Claude Code Session History Manager - Solve the 30-day expiration problem.
+Claude Code Session History Manager - On-demand retrieval, precise recall.
 
-## Features
+## What is Memex?
 
-- **Full-Text Search** - Search through all your Claude Code conversations
-- **Semantic Search** - Find relevant context using vector embeddings
-- **MCP Integration** - Use as MCP server for context retrieval
-- **RAG Q&A** - Ask questions about your coding history
-- **Auto Backup** - Never lose your valuable conversations
+Memex adds long-term memory to Claude Code through on-demand search. Instead of Claude forgetting everything from your previous conversations, you can search and retrieve precise context whenever you need it.
+
+## Key Capabilities
+
+- **On-Demand Search** - You control when to search, no automatic injection
+- **Complete Preservation** - Stores original records without AI compression
+- **Powerful Search** - FTS5 full-text + semantic vectors + hybrid ranking
+- **MCP Integration** - Search directly from Claude Code conversations
+- **Web UI** - Visual browsing, RAG Q&A, statistics dashboard
+- **REST API** - Integrate into any toolchain
+
+::callout{type="info"}
+**Why Memex?** Read the full explanation in [Why Memex?](/docs/memex/why)
+::
 
 ## Quick Start
 
