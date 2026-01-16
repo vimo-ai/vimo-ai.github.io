@@ -276,7 +276,7 @@
             :is-active="activeProject === 'docs'"
             @mouseenter="handleHover('docs', '#ffffff')"
             @mouseleave="handleLeave"
-            @click="navigateTo('/docs/memex')"
+            @click="navigateTo('/docs')"
           />
         </div>
 
