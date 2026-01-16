@@ -1,15 +1,18 @@
 <template>
   <aside class="w-64 flex-shrink-0 border-r border-gray-800 p-4">
-    <nav class="sticky top-4">
-      <div class="mb-6">
+    <nav class="sticky top-20">
+      <!-- Project Title -->
+      <div class="mb-6" v-if="currentProject">
         <NuxtLink
-          to="/docs/memex"
+          :to="`/docs/${currentProject.id}`"
           class="text-lg font-bold text-neon-cyan hover:text-neon-pink transition-colors"
         >
-          Memex
+          {{ currentProject.label }}
         </NuxtLink>
+        <p class="text-xs text-gray-500 mt-1">{{ currentProject.description }}</p>
       </div>
 
+      <!-- Navigation -->
       <ul class="space-y-1">
         <li v-for="item in navigation" :key="item.path">
           <NuxtLink
@@ -43,29 +46,12 @@
 </template>
 
 <script setup lang="ts">
+import { useDocsConfig } from '~/composables/useDocsConfig'
+
 const route = useRoute()
+const { currentProject, currentNavigation } = useDocsConfig()
 
-interface NavItem {
-  title: string
-  path: string
-  children?: NavItem[]
-}
-
-const navigation: NavItem[] = [
-  { title: 'Introduction', path: '/docs/memex' },
-  { title: 'Installation', path: '/docs/memex/installation' },
-  { title: 'Configuration', path: '/docs/memex/configuration' },
-  { title: 'API Reference', path: '/docs/memex/api' },
-  { title: 'MCP Tools', path: '/docs/memex/mcp' },
-  { title: 'Architecture', path: '/docs/memex/architecture' },
-  {
-    title: 'Internals',
-    path: '/docs/memex/internals',
-    children: [
-      { title: 'Scheduler', path: '/docs/memex/internals/scheduler' }
-    ]
-  }
-]
+const navigation = currentNavigation
 
 function isActive(path: string): boolean {
   return route.path === path
