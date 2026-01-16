@@ -23,6 +23,7 @@ module.exports = {
           green: '#39ff14',     // MCP Router
           orange: '#ff6b35',    // Claude Hooks
           pink: '#ff2a6d',      // Vlaude
+          eterm: '#2AD98D',     // ETerm
         }
       },
       fontFamily: {

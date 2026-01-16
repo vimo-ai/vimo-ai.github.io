@@ -1,5 +1,8 @@
 <template>
-  <div class="min-h-screen bg-cyber-black text-gray-100">
+  <div class="min-h-screen bg-cyber-black text-gray-100" :class="{ 'theme-eterm': isEtermDoc }">
+    <!-- Header -->
+    <DocsHeader />
+
     <div class="flex max-w-7xl mx-auto">
       <!-- Sidebar -->
       <DocsSidebar class="hidden lg:block" />
@@ -7,8 +10,8 @@
       <!-- Main Content -->
       <main class="flex-1 min-w-0 px-6 py-12 lg:px-12">
         <!-- Back Link (mobile) -->
-        <NuxtLink to="/" class="text-neon-cyan hover:underline mb-8 inline-block lg:hidden">
-          &larr; Back to Home
+        <NuxtLink to="/docs" class="text-neon-cyan hover:underline mb-8 inline-block lg:hidden">
+          &larr; Back to Docs
         </NuxtLink>
 
         <!-- Content -->
@@ -20,8 +23,8 @@
 
         <div v-else class="text-center py-20">
           <h1 class="text-2xl text-gray-500">Document not found</h1>
-          <NuxtLink to="/" class="text-neon-cyan hover:underline mt-4 inline-block">
-            Go Home
+          <NuxtLink to="/docs" class="text-neon-cyan hover:underline mt-4 inline-block">
+            Go to Docs
           </NuxtLink>
         </div>
 
@@ -59,7 +62,7 @@
 
       <!-- Table of Contents (right sidebar) -->
       <aside v-if="doc && toc.length > 0" class="hidden xl:block w-64 flex-shrink-0 p-4">
-        <div class="sticky top-4">
+        <div class="sticky top-20">
           <h4 class="text-sm font-semibold text-gray-400 mb-3">On this page</h4>
           <ul class="space-y-2 text-sm">
             <li v-for="item in toc" :key="item.id">
@@ -79,7 +82,10 @@
 </template>
 
 <script setup lang="ts">
+import { useDocsConfig } from '~/composables/useDocsConfig'
+
 const route = useRoute()
+const { flatNavigation } = useDocsConfig()
 
 // Build path from slug
 const slug = computed(() => {
@@ -87,38 +93,29 @@ const slug = computed(() => {
   return Array.isArray(s) ? s.join('/') : s || 'index'
 })
 
+// Check if current doc is under /docs/eterm/
+const isEtermDoc = computed(() => slug.value.startsWith('eterm'))
+
 const { data: doc } = await useAsyncData(`doc-${slug.value}`, () => {
   return queryCollection('docs').path(`/docs/${slug.value}`).first()
 })
 
-// Navigation order
-const navOrder = [
-  { path: '/docs/memex', title: 'Introduction' },
-  { path: '/docs/memex/installation', title: 'Installation' },
-  { path: '/docs/memex/configuration', title: 'Configuration' },
-  { path: '/docs/memex/api', title: 'API Reference' },
-  { path: '/docs/memex/mcp', title: 'MCP Tools' },
-  { path: '/docs/memex/architecture', title: 'Architecture' },
-  { path: '/docs/memex/internals', title: 'Internals' },
-  { path: '/docs/memex/internals/scheduler', title: 'Scheduler Internals' }
-]
-
-// Find current index
+// Find current index in flat navigation
 const currentIndex = computed(() => {
   const currentPath = `/docs/${slug.value}`
-  return navOrder.findIndex(item => item.path === currentPath)
+  return flatNavigation.value.findIndex(item => item.path === currentPath)
 })
 
 const prevPage = computed(() => {
   if (currentIndex.value > 0) {
-    return navOrder[currentIndex.value - 1]
+    return flatNavigation.value[currentIndex.value - 1]
   }
   return null
 })
 
 const nextPage = computed(() => {
-  if (currentIndex.value >= 0 && currentIndex.value < navOrder.length - 1) {
-    return navOrder[currentIndex.value + 1]
+  if (currentIndex.value >= 0 && currentIndex.value < flatNavigation.value.length - 1) {
+    return flatNavigation.value[currentIndex.value + 1]
   }
   return null
 })
@@ -153,9 +150,9 @@ const toc = computed(() => {
 .prose pre { @apply p-4 rounded-lg overflow-x-auto mb-4 border border-gray-700/50; }
 .prose pre code {
   @apply bg-transparent p-0 border-0;
-  color: rgb(103 232 249); /* cyan-300 作为默认色 */
+  color: rgb(103 232 249); /* cyan-300 */
 }
-/* Shiki 的 span 保持自己的颜色 */
+/* Shiki spans keep their colors */
 .prose pre code .line span[style] {
   color: var(--shiki-color) !important;
 }
@@ -178,4 +175,13 @@ const toc = computed(() => {
   max-width: 100%;
   height: auto;
 }
+
+/* ETerm theme overrides */
+.theme-eterm .prose h1 { @apply text-neon-eterm; }
+.theme-eterm .prose code { @apply text-neon-eterm; }
+.theme-eterm .prose a { @apply text-neon-eterm; }
+.theme-eterm .prose blockquote { @apply border-neon-eterm; }
+.theme-eterm .text-neon-cyan { @apply text-neon-eterm; }
+.theme-eterm .hover\:text-neon-cyan:hover { @apply text-neon-eterm; }
+.theme-eterm .border-neon-cyan { @apply border-neon-eterm; }
 </style>
