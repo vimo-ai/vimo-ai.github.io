@@ -5,8 +5,6 @@ navigation:
   order: 2
 ---
 
-# Why Memex?
-
 ## The Problem: Claude's Missing Memory
 
 Claude Code is an incredible coding assistant, but it has a fundamental limitation: **it only remembers the current conversation**.

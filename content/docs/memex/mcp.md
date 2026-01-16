@@ -5,8 +5,6 @@ navigation:
   order: 5
 ---
 
-# MCP Tools
-
 Memex implements the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP), allowing Claude Code to retrieve your conversation history as context.
 
 ## Setup

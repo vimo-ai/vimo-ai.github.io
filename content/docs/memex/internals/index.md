@@ -5,8 +5,6 @@ navigation:
   order: 7
 ---
 
-# Internals
-
 This section covers the internal implementation details of Memex. These documents are intended for developers who want to understand how Memex works under the hood or contribute to the project.
 
 ## Topics

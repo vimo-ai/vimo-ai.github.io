@@ -5,8 +5,6 @@ navigation:
   order: 8
 ---
 
-# Scheduler Internals
-
 Memex runs several background tasks to keep your session data indexed and backed up. This document explains the internal call structure of each task.
 
 ## Task Overview

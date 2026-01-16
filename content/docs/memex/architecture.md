@@ -5,8 +5,6 @@ navigation:
   order: 6
 ---
 
-# Architecture
-
 This document describes Memex's internal architecture, auto-generated from source code analysis.
 
 ## Module Overview

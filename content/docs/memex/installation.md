@@ -5,8 +5,6 @@ navigation:
   order: 2
 ---
 
-# Installation
-
 Memex can be installed via Docker (recommended) or built from source.
 
 ## Quick Start with Docker

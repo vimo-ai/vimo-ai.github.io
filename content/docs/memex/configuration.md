@@ -5,8 +5,6 @@ navigation:
   order: 3
 ---
 
-# Configuration
-
 Memex is configured via environment variables. All settings have sensible defaults.
 
 ## Environment Variables

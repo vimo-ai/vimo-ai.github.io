@@ -5,8 +5,6 @@ navigation:
   order: 4
 ---
 
-# API Reference
-
 Memex exposes a REST API on port `10013` (default). All responses are JSON.
 
 **Parameter naming:** All query parameters use `camelCase` (e.g., `projectId`, `startDate`).
