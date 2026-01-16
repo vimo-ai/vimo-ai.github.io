@@ -18,10 +18,10 @@ module.exports = {
           gray: '#1a1a1a',
         },
         neon: {
-          cyan: '#00f3ff',      // Default/Memex
-          violet: '#bd00ff',    // Default
-          green: '#39ff14',     // MCP Router
-          orange: '#ff6b35',    // Claude Hooks
+          cyan: '#00f3ff',      // Memex
+          violet: '#bd00ff',    // MCP Router
+          green: '#39ff14',     // Reserved
+          orange: '#ff6b35',    // Reserved
           pink: '#ff2a6d',      // Vlaude
           eterm: '#2AD98D',     // ETerm
         }

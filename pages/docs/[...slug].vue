@@ -3,7 +3,7 @@
     <!-- Header -->
     <DocsHeader />
 
-    <div class="flex max-w-7xl mx-auto">
+    <div class="flex">
       <!-- Sidebar -->
       <DocsSidebar class="hidden lg:block" />
 

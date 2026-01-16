@@ -151,9 +151,9 @@
           <ProjectLogo 
             label="MCP ROUTER" 
             :path="icons.mcp"
-            :color="moduleStates['mcp'] === 'online' || activeProject === 'mcp' ? '#39ff14' : '#444444'"
+            :color="moduleStates['mcp'] === 'online' || activeProject === 'mcp' ? '#bd00ff' : '#444444'"
             :is-active="activeProject === 'mcp' || linkedProject === 'mcp'"
-            @mouseenter="handleHover('mcp', '#39ff14')"
+            @mouseenter="handleHover('mcp', '#bd00ff')"
             @mouseleave="handleLeave"
             @click="openLink('https://github.com/vimo-ai/mcp-router')"
           />
@@ -179,24 +179,24 @@
           />
         </div>
 
-        <!-- Claude Hooks -->
+        <!-- ETerm -->
         <div
-          :ref="(el) => setProjectRef('hooks', el)"
-          data-module="hooks"
-          :data-module-color="moduleColors['hooks']"
+          :ref="(el) => setProjectRef('eterm', el)"
+          data-module="eterm"
+          :data-module-color="moduleColors['eterm']"
           class="z-30 transition-all duration-500 hover:scale-110"
-          :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['hooks'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
-          :style="isMobile ? {} : getModuleStyle('hooks')"
+          :class="[isMobile ? 'relative flex justify-center' : 'absolute', moduleStates['eterm'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
+          :style="isMobile ? {} : getModuleStyle('eterm')"
         >
           <div class="relative">
-            <ProjectLogo 
-              label="CLAUDE HOOKS" 
-              :path="icons.hooks"
-              :color="moduleStates['hooks'] === 'online' || activeProject === 'hooks' ? '#ff6b35' : '#444444'"
-              :is-active="activeProject === 'hooks'"
-              @mouseenter="handleHover('hooks', '#ff6b35')"
+            <ProjectLogo
+              label="ETERM"
+              :path="icons.eterm"
+              :color="moduleStates['eterm'] === 'online' || activeProject === 'eterm' ? '#2AD98D' : '#444444'"
+              :is-active="activeProject === 'eterm'"
+              @mouseenter="handleHover('eterm', '#2AD98D')"
               @mouseleave="handleLeave"
-              @click="openLink('https://github.com/vimo-ai/claude-hooks')"
+              @click="openLink('https://github.com/vimo-ai/ETerm')"
             />
           </div>
         </div>
@@ -308,12 +308,31 @@
           :class="[isMobile ? 'relative' : 'absolute', moduleStates['roadmap'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
           :style="isMobile ? {} : getModuleStyle('roadmap')"
         >
-          <ContentChip 
-            label="ROADMAP" 
+          <ContentChip
+            label="ROADMAP"
             :path="icons.roadmap"
             :color="moduleStates['roadmap'] === 'online' || activeProject === 'roadmap' ? '#ffffff' : '#444444'"
             :is-active="activeProject === 'roadmap'"
             @mouseenter="handleHover('roadmap', '#ffffff')"
+            @mouseleave="handleLeave"
+          />
+        </div>
+
+        <!-- Team -->
+        <div
+          :ref="(el) => setProjectRef('team', el)"
+          data-module="team"
+          :data-module-color="moduleColors['team']"
+          class="z-30 transition-all duration-500"
+          :class="[isMobile ? 'relative' : 'absolute', moduleStates['team'] === 'offline' ? 'opacity-100 grayscale scale-95' : 'opacity-100 grayscale-0 scale-100']"
+          :style="isMobile ? {} : getModuleStyle('team')"
+        >
+          <ContentChip
+            label="TEAM"
+            :path="icons.team"
+            :color="moduleStates['team'] === 'online' || activeProject === 'team' ? '#ffffff' : '#444444'"
+            :is-active="activeProject === 'team'"
+            @mouseenter="handleHover('team', '#ffffff')"
             @mouseleave="handleLeave"
           />
         </div>
@@ -379,12 +398,13 @@ const TERMINAL_HEIGHT = 450
 const moduleConfigs = [
   { id: 'mcp', width: 220, height: 220, preference: 'top-left' as const },
   { id: 'memex', width: 200, height: 200, preference: 'top-right' as const },
-  { id: 'hooks', width: 180, height: 180, preference: 'bottom-left' as const },
+  { id: 'eterm', width: 180, height: 180, preference: 'bottom-left' as const },
   { id: 'vlaude', width: 180, height: 180, preference: 'bottom-right' as const },
   { id: 'about', width: 140, height: 140, preference: 'top-left' as const },
   { id: 'docs', width: 140, height: 140, preference: 'top-right' as const },
   { id: 'community', width: 140, height: 140, preference: 'bottom-left' as const },
   { id: 'roadmap', width: 140, height: 140, preference: 'bottom-right' as const },
+  { id: 'team', width: 140, height: 140, preference: 'bottom-left' as const },
   { id: 'sys_core', width: 60, height: 240, preference: 'bottom-right' as const }
 ]
 
@@ -459,83 +479,95 @@ const recalculateLayout = async () => {
 
 // Project Data
 const defaultText = `> SYSTEM_INIT...
-> CHECKING_CORE_MODULES... [OK]
+> LOADING_CORE_MODULES... [OK]
 > ESTABLISHING_NEURAL_LINK... [OK]
 
 WELCOME TO VIMO.
-THE CLAUDE CODE ENHANCEMENT SUITE.
+THE AI CLI ENHANCEMENT SUITE.
 
-AWAITING_INPUT_`
+HOVER_TO_EXPLORE_`
 
 const projects = {
   mcp: `> TARGET: MCP_ROUTER
-> TYPE: NETWORK_INFRASTRUCTURE
-> PORT: 3000
+> TYPE: SERVICE_GATEWAY
+> VERSION: 0.0.1-beta.14
 
-Advanced MCP Service Management.
-Workspace Isolation // Drag-and-Drop Config
-Optimized Token Consumption Protocols.
+Progressive MCP Service Disclosure.
+Load What You Need, When You Need.
+Optimized Context Management.
 
-[ACCESS_GRANTED]`,
+[BETA_RELEASE]`,
 
   memex: `> TARGET: MEMEX
-> TYPE: NEURAL_ARCHIVE
-> STATUS: RECORDING
+> TYPE: SESSION_ARCHIVE
+> STATUS: ALPHA
 
-Claude Code Session History Manager.
-Full-Text Search // Semantic Retrieval
-Automatic Backup Systems Engaged.
+AI CLI Session History Manager.
+Full-Text Search & Extensible Hooks.
+Your Conversations, Preserved.
 
-[ACCESS_GRANTED]`,
+[ALPHA_RELEASE]`,
 
-  hooks: `> TARGET: CLAUDE_HOOKS
-> TYPE: SURVEILLANCE_SUITE
-> SENSORS: ONLINE
+  eterm: `> TARGET: ETERM
+> TYPE: TERMINAL_CORE
+> STATUS: MVP
 
-Real-time Monitoring & Event Interception.
-Quota Tracking // File System Watchdogs
-Notification Relay Systems Active.
+Terminal Built for AI CLI.
+MCP Orchestration & Plugin Architecture.
+Tab Status & Session Recovery.
 
-[ACCESS_GRANTED]`,
+[MVP_BUILD]`,
 
   vlaude: `> TARGET: VLAUDE
 > TYPE: SYNC_MATRIX
-> NODES: CONNECTED
+> STATUS: DEMO
 
-Cross-Device Dialogue Synchronization.
+Cross-Device AI CLI Session Sync.
 Real-time State Coordination.
-Unified Session Experience.
+Continue Anywhere.
 
-[ACCESS_GRANTED]`,
+[DEMO_BUILD]`,
 
   about: `> TARGET: ABOUT_VIMO
 > TYPE: SYSTEM_INFO
 
-Vimo is a next-generation enhancement suite for Claude Code.
+Vimo is an enhancement suite for AI CLI.
 Designed to empower developers with advanced tools.
-Hardcore Aesthetics // Powerful Functionality.`,
+Hardcore Aesthetics & Powerful Functionality.`,
 
   docs: `> TARGET: DOCUMENTATION
 > TYPE: KNOWLEDGE_BASE
 
 Access full technical specifications.
-API References // Integration Guides.
+API References & Integration Guides.
 Learn how to maximize your Vimo experience.`,
 
   community: `> TARGET: COMMUNITY
 > TYPE: NETWORK_HUB
 
 Join the Vimo developer network.
-Discord Server // GitHub Repository.
+Discord Server & GitHub Repository.
 Collaborate and share your configurations.`,
 
   roadmap: `> TARGET: ROADMAP
-> TYPE: FUTURE_PROJECTIONS
+> TYPE: FUTURE_PLANS
 
-Upcoming Features:
-- Advanced Plugin System
-- Cloud Sync V2
-- AI-Powered Debugging Assistant`,
+Upcoming:
+- Memex: Compact & Hooks Support
+- Memex: Gemini CLI Support
+- ETerm: Push to Alpha
+
+[PLANNING]`,
+
+  team: `> TARGET: TEAM
+> TYPE: DEVELOPERS
+
+Built by:
+@higuaifan & @jobin
+
+Open to Contributors.
+
+[BUILDING]`,
 
   sys_core: `> TARGET: UNKNOWN_CHIP
 > TYPE: LEGACY_HARDWARE
@@ -556,8 +588,8 @@ const icons = {
   // Memex: Brain/Chip circuit
   memex: 'M30 20 H70 V80 H30 Z M40 30 H60 M40 40 H60 M40 50 H60 M40 60 H50 M30 20 L20 10 M70 20 L80 10 M30 80 L20 90 M70 80 L80 90 M20 40 H30 M20 50 H30 M20 60 H30 M70 40 H80 M70 50 H80 M70 60 H80',
   
-  // Claude Hooks: Eye/Lens with brackets
-  hooks: 'M20 30 L10 30 L10 70 L20 70 M80 30 L90 30 L90 70 L80 70 M50 35 A15 15 0 1 0 50 65 A15 15 0 1 0 50 35 M50 45 A5 5 0 1 1 50 55 A5 5 0 1 1 50 45 M50 20 V30 M50 70 V80 M20 50 H30 M70 50 H80',
+  // ETerm: Terminal window with prompt
+  eterm: 'M15 20 H85 V80 H15 Z M15 30 H85 M25 25 A2 2 0 1 0 25 25.01 M33 25 A2 2 0 1 0 33 25.01 M41 25 A2 2 0 1 0 41 25.01 M25 45 L35 45 M25 55 L55 55 M25 65 L45 65',
   
   // Vlaude: Cloud/Signal waves
   vlaude: 'M30 60 A15 15 0 0 1 30 30 A20 20 0 0 1 70 30 A15 15 0 0 1 70 60 H30 M50 60 V80 M35 80 H65 M20 45 L10 45 M90 45 L80 45 M50 20 L50 10',
@@ -574,20 +606,24 @@ const icons = {
   // Roadmap: Timeline / Arrow
   roadmap: 'M20 50 H80 M70 40 L80 50 L70 60 M30 40 V60 M50 40 V60',
 
+  // Team: Circle + Triangle (simplified person)
+  team: 'M50 18 A12 12 0 1 0 50 42 A12 12 0 1 0 50 18 M25 85 L50 50 L75 85 Z',
+
   // Sys Core: BGA Chip
   sys_core: 'M25 25 H75 V75 H25 Z M35 35 H65 V65 H35 Z M45 45 H55 V55 H45 Z M25 25 L15 15 M75 25 L85 15 M25 75 L15 85 M75 75 L85 85'
 }
 
 // Module Colors
 const moduleColors: Record<string, string> = {
-  mcp: '#39ff14',      // Neon Green
+  mcp: '#bd00ff',      // Neon Violet
   memex: '#00f3ff',    // Cyan
-  hooks: '#ff6b35',    // Orange
-  vlaude: '#9d4edd',   // Purple
+  eterm: '#2AD98D',    // ETerm Theme
+  vlaude: '#ff2a6d',   // Neon Pink
   about: '#ffd60a',    // Yellow
   docs: '#06ffa5',     // Mint
   community: '#ff006e', // Pink
-  roadmap: '#4cc9f0'   // Sky Blue
+  roadmap: '#4cc9f0',  // Sky Blue
+  team: '#ff9500'      // Orange
 }
 
 const currentText = ref(defaultText)
@@ -845,12 +881,13 @@ const initBusLines = () => {
 const moduleStates = ref<Record<string, 'offline' | 'booting' | 'online'>>({
   mcp: 'offline',
   memex: 'offline',
-  hooks: 'offline',
+  eterm: 'offline',
   vlaude: 'offline',
   about: 'offline',
   docs: 'offline',
   community: 'offline',
   roadmap: 'offline',
+  team: 'offline',
   sys_core: 'offline'
 })
 

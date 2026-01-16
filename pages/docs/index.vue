@@ -4,7 +4,7 @@
     <DocsHeader />
 
     <!-- Main Content -->
-    <main class="max-w-4xl mx-auto px-6 py-16">
+    <main class="px-6 py-16">
       <!-- Title -->
       <div class="text-center mb-12">
         <h1 class="text-3xl font-bold text-neon-cyan mb-4 font-orbitron tracking-wider">
