@@ -303,7 +303,7 @@ Check AI Q&A availability.
 
 ### POST /api/collect
 
-Trigger manual collection of Claude Code sessions.
+Trigger manual collection of AI CLI sessions.
 
 ```bash
 curl -X POST http://localhost:10013/api/collect

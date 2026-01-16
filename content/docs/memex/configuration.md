@@ -17,6 +17,7 @@ Memex is configured via environment variables. All settings have sensible defaul
 | `MEMEX_WEB_DIR` | `~/.vimo/memex/web` | Web frontend static files |
 | `CLAUDE_PROJECTS_PATH` | `~/.claude/projects` | Claude Code session data location |
 | `CODEX_PATH` | `~/.codex` | Codex CLI data location |
+| `OPENCODE_PATH` | `~/.local/share/opencode` | OpenCode data location |
 | `OLLAMA_API` | `http://localhost:11434` | Ollama API endpoint |
 | `EMBEDDING_MODEL` | `bge-m3` | Ollama model for embeddings |
 | `CHAT_MODEL` | `qwen3:8b` | Ollama model for AI Q&A |
@@ -33,7 +34,9 @@ Memex separates data storage from web frontend:
 | `{VIMO_HOME}/db/backups/` | Database backups |
 | `{VIMO_HOME}/db/archive/` | Session archives |
 | `{VIMO_HOME}/memex/web/` | Web frontend static files |
-| `{CLAUDE_PROJECTS_PATH}/` | Claude Code session JSONL files (source) |
+| `{CLAUDE_PROJECTS_PATH}/` | Claude Code session files (source) |
+| `{CODEX_PATH}/` | Codex CLI session files (source) |
+| `{OPENCODE_PATH}/` | OpenCode session files (source) |
 
 **Architecture**: Database (`~/.vimo/db/`) is shared across Vimo tools. Web UI (`~/.vimo/memex/web/`) is Memex-specific.
 
@@ -51,7 +54,7 @@ No configuration needed for basic usage:
 Memex will:
 1. Start on port 10013
 2. Store data in `~/.vimo/db/`
-3. Scan `~/.claude/projects/` for sessions
+3. Scan all supported AI CLI data directories for sessions
 4. Enable FTS (full-text search) immediately
 
 ## With Ollama
@@ -199,9 +202,12 @@ If the web UI shows blank:
 
 If `/api/stats` shows `sessionCount: 0`:
 
-1. Check Claude Code path exists: `ls ~/.claude/projects/`
+1. Check data paths exist:
+   - Claude Code: `ls ~/.claude/projects/`
+   - Codex CLI: `ls ~/.codex/`
+   - OpenCode: `ls ~/.local/share/opencode/`
 2. Trigger manual collection: `curl -X POST http://localhost:10013/api/collect`
-3. For Docker: ensure `CLAUDE_PROJECTS_PATH` points to container path (`/data/claude/projects`)
+3. For Docker: ensure environment variables point to container paths
 4. Check logs for path errors
 
 ### Slow indexing

@@ -1,11 +1,11 @@
 ---
 title: MCP Tools
-description: Using Memex as an MCP server for Claude Code
+description: Using Memex as an MCP server for AI coding assistants
 navigation:
   order: 5
 ---
 
-Memex implements the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP), allowing Claude Code to retrieve your conversation history as context.
+Memex implements the [Model Context Protocol](https://modelcontextprotocol.io/) (MCP), allowing AI coding assistants to retrieve your conversation history as context.
 
 ## Setup
 
@@ -64,7 +64,7 @@ Memex provides 4 MCP tools:
 
 ### search_history
 
-Search Claude Code conversation history using full-text search, semantic search, or hybrid mode.
+Search AI CLI conversation history using full-text search, semantic search, or hybrid mode.
 
 **Parameters:**
 

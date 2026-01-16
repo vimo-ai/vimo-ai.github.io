@@ -5,9 +5,9 @@ navigation:
   order: 2
 ---
 
-## The Problem: Claude's Missing Memory
+## The Problem: AI Assistants' Missing Memory
 
-Claude Code is an incredible coding assistant, but it has a fundamental limitation: **it only remembers the current conversation**.
+AI coding assistants are incredibly powerful, but they have a fundamental limitation: **they only remember the current conversation**.
 
 ### Real-World Challenges
 
@@ -233,10 +233,10 @@ Memex uses an Adapter pattern to support multiple data formats:
     │   Adapters     │
     └───────┬────────┘
             │
-    ┌───────┴────────┬────────────┐
-    │                │            │
-Claude Code      Codex CLI    Future: More
-  Format          Format      AI Assistants
+    ┌───────┴────────┬────────────┬────────────┐
+    │                │            │            │
+Claude Code    Codex CLI    OpenCode      More...
+                                       (Gemini CLI, etc.)
 ```
 
 **Benefits**:
@@ -248,10 +248,12 @@ Claude Code      Codex CLI    Future: More
 
 ```
 Your Machine
-├── ~/.claude/projects/     # Claude Code data
-├── ~/.vimo/db/            # Memex storage
-│   ├── ai-cli-session.db  # SQLite (FTS5 index)
-│   └── lancedb/           # Vector storage
+├── ~/.claude/projects/        # Claude Code data
+├── ~/.codex/                  # Codex CLI data
+├── ~/.local/share/opencode/   # OpenCode data
+├── ~/.vimo/db/                # Memex storage
+│   ├── ai-cli-session.db      # SQLite (FTS5 index)
+│   └── lancedb/               # Vector storage
 └── Memex Server (localhost:10013)
 ```
 
@@ -272,7 +274,7 @@ Share technical decisions and best practices across team members. One developer'
 Seamless experience between home and office. Your work laptop conversation history available on your personal machine.
 
 ### Broader AI Assistant Support
-Extend Adapter support to more AI assistants (Cursor, Gemini, Copilot...). One memory layer for all your AI interactions.
+Continue extending Adapter support to more AI assistants (Gemini CLI, Cursor, Copilot...). One memory layer for all your AI interactions.
 
 ---
 

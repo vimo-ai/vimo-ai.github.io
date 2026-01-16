@@ -25,6 +25,7 @@ This mounts:
 **Important**:
 - `VIMO_HOME` sets the base directory for SQLite DB and all data
 - `CLAUDE_PROJECTS_PATH` tells Memex where to find Claude Code sessions
+- Memex also auto-detects Codex CLI (`~/.codex`) and OpenCode (`~/.local/share/opencode`) if present
 - Without these, Memex won't find your data inside the container
 
 ## Build from Source
@@ -125,7 +126,7 @@ Create a systemd service:
 ```ini
 # /etc/systemd/system/memex.service
 [Unit]
-Description=Memex Claude Code History Manager
+Description=Memex AI CLI Session History Manager
 After=network.target
 
 [Service]

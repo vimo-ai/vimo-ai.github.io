@@ -1,13 +1,20 @@
 ---
 title: Memex
-description: Claude Code Session History Manager - On-demand retrieval, precise recall
+description: AI CLI Session History Manager - On-demand retrieval, precise recall
 navigation:
   order: 1
 ---
 
 ## What is Memex?
 
-Memex adds long-term memory to Claude Code through on-demand search. Instead of Claude forgetting everything from your previous conversations, you can search and retrieve precise context whenever you need it.
+Memex adds long-term memory to AI coding assistants through on-demand search. Instead of losing your valuable conversations, you can search and retrieve precise context whenever you need it.
+
+### Supported Tools
+
+- ✅ Claude Code
+- ✅ Codex CLI
+- ✅ OpenCode
+- 🚧 Gemini CLI (coming soon)
 
 ## Key Capabilities
 
@@ -69,9 +76,10 @@ Get from zero to searching your history in 4 steps:
 ## Architecture
 
 ```
-Claude Code (.jsonl)
+AI CLI Sessions
+(Claude Code / Codex / OpenCode)
        ↓
-   Collector (scan & parse)
+   Collector (adapter per tool)
        ↓
    SQLite DB (sessions, messages)
        ↓
@@ -100,6 +108,8 @@ For detailed module dependencies and call graphs, see [Architecture](/docs/memex
 | `PORT` | 10013 | HTTP server port |
 | `VIMO_HOME` | ~/.vimo | Base directory (SQLite, LanceDB, backups) |
 | `CLAUDE_PROJECTS_PATH` | ~/.claude/projects | Claude Code session data |
+| `CODEX_PATH` | ~/.codex | Codex CLI session data |
+| `OPENCODE_PATH` | ~/.local/share/opencode | OpenCode session data |
 | `OLLAMA_API` | http://localhost:11434 | Ollama server for embeddings |
 
 See [Configuration](/docs/memex/configuration) for all options.

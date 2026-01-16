@@ -20,7 +20,7 @@ scheduler.every(1.day()).run(|| compact());
 
 ## Task: collect_all
 
-Scans Claude Code session files and imports new messages.
+Scans AI CLI session files and imports new messages.
 
 ```
 collect_all

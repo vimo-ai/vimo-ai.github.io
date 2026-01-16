@@ -48,7 +48,7 @@ Memex runs several background tasks managed by the Scheduler:
 
 | Task | Interval | Purpose |
 |------|----------|---------|
-| Collect | 30s | Scan for new Claude Code sessions |
+| Collect | 30s | Scan for new AI CLI sessions |
 | Index | 60s | Embed new messages into vector store |
 | Backup | 1 day | Create database backup |
 | Archive | 1 hour | Archive old sessions |
