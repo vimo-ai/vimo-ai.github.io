@@ -32,11 +32,26 @@ This mounts:
 
 For quick searches without running a server, use Memex Lite - a zero-dependency CLI tool.
 
-### Install via Homebrew
+### Install via Homebrew (macOS)
 
 ```bash
-brew tap vimo-ai/tap
-brew install memex-lite
+brew install vimo-ai/tap/memex
+```
+
+### Install from Release
+
+```bash
+# macOS (Apple Silicon)
+curl -L https://github.com/vimo-ai/memex/releases/latest/download/memex-darwin-arm64.tar.gz | tar xz
+sudo mv memex /usr/local/bin/
+
+# macOS (Intel)
+curl -L https://github.com/vimo-ai/memex/releases/latest/download/memex-darwin-x64.tar.gz | tar xz
+sudo mv memex /usr/local/bin/
+
+# Linux (x86_64)
+curl -L https://github.com/vimo-ai/memex/releases/latest/download/memex-linux-x64.tar.gz | tar xz
+sudo mv memex /usr/local/bin/
 ```
 
 ### Usage
