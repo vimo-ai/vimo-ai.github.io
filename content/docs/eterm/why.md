@@ -5,6 +5,10 @@ navigation:
   order: 2
 ---
 
+*Or, prefer the confession version? [This way, sir/madam 🕯️](/docs/eterm/sermon)*
+
+---
+
 We're heavy Claude Code users. We wanted a smoother, more immersive experience.
 
 We looked around. Nothing quite fit what we had in mind. So we built one ourselves — with Claude.
