@@ -39,66 +39,72 @@ Memex adds long-term memory to AI coding assistants through on-demand search. In
 
 ## Quick Start
 
-```bash
-# Using Docker
+### Lite (Quick Search)
+
+Reads local session data directly, no server needed. Perfect for quick one-off searches.
+
+```bash [Terminal]
+brew install vimo-ai/tap/memex
+```
+
+```bash [Terminal]
+memex search "authentication"
+memex list -n 10
+```
+
+### Full (Recommended)
+
+Run as a service with MCP integration. Search history directly in Claude Code.
+
+**1. Start Docker**
+
+```bash [Terminal]
 docker run -d -p 10013:10013 \
   -v ~/.claude:/data/claude \
+  -v ~/.codex:/data/codex \
+  -v ~/.local/share/opencode:/data/opencode \
+  -v ~/.gemini:/data/gemini \
   -v ~/.vimo:/data/vimo \
-  -e CLAUDE_PROJECTS_PATH=/data/claude/projects \
   -e VIMO_HOME=/data/vimo \
+  -e CLAUDE_PROJECTS_PATH=/data/claude/projects \
+  -e CODEX_PATH=/data/codex \
+  -e OPENCODE_PATH=/data/opencode \
+  -e GEMINI_PATH=/data/gemini/history \
   ghcr.io/vimo-ai/memex:latest
-
-# Or build from source
-cargo build --release
-./target/release/memex serve
 ```
 
-Verify it's working:
+**2. Configure MCP**
 
-```bash
-curl http://localhost:10013/health    # → OK
-curl http://localhost:10013/api/stats # → {"projectCount":...}
+::code-group
+```bash [Claude Code]
+claude mcp add memex -- npx -y mcp-remote http://localhost:10013/api/mcp
 ```
+```bash [Codex]
+codex mcp add memex -- npx -y mcp-remote http://localhost:10013/api/mcp
+```
+```bash [Gemini]
+gemini mcp add --transport http memex http://localhost:10013/api/mcp
+```
+```bash [OpenCode]
+# Edit ~/.config/opencode/opencode.json
+{
+  "mcp": {
+    "memex": {
+      "type": "remote",
+      "url": "http://localhost:10013/api/mcp"
+    }
+  }
+}
+```
+::
 
-## Claude Code Quick Start
+**3. Use in Your AI CLI**
 
-Get from zero to searching your history in 4 steps:
-
-1. **Start Memex** (see Quick Start above)
-
-2. **Verify sessions imported** (auto-imports on startup)
-   ```bash
-   curl http://localhost:10013/api/stats
-   # Should show sessionCount > 0
-   ```
-
-3. **Try a search**
-   ```bash
-   curl "http://localhost:10013/api/search?q=authentication&limit=3"
-   ```
-
-4. **Configure MCP** (optional) - See [MCP Tools](/docs/memex/mcp) for Claude Code integration
-
-> **Note**: If `sessionCount` is 0, trigger manual collection: `curl -X POST http://localhost:10013/api/collect`
-
-## Architecture
+Restart your AI CLI, then search history:
 
 ```
-AI CLI Sessions
-(Claude Code / Codex / OpenCode)
-       ↓
-   Collector (adapter per tool)
-       ↓
-   SQLite DB (sessions, messages)
-       ↓
-   ┌───────────────┐
-   │   Indexer     │ → LanceDB (vectors)
-   └───────────────┘
-       ↓
-   Search / RAG / MCP
+use memex search "anything you want"
 ```
-
-For detailed module dependencies and call graphs, see [Architecture](/docs/memex/architecture).
 
 ## Documentation
 
@@ -107,18 +113,3 @@ For detailed module dependencies and call graphs, see [Architecture](/docs/memex
 - [API Reference](/docs/memex/api) - REST API endpoints
 - [MCP Tools](/docs/memex/mcp) - Claude Code integration
 - [Architecture](/docs/memex/architecture) - Module dependencies and design
-- [Scheduler Internals](/docs/memex/internals/scheduler) - Background task details
-
-## Configuration
-
-| Env Variable | Default | Description |
-|--------------|---------|-------------|
-| `PORT` | 10013 | HTTP server port |
-| `VIMO_HOME` | ~/.vimo | Base directory (SQLite, LanceDB, backups) |
-| `CLAUDE_PROJECTS_PATH` | ~/.claude/projects | Claude Code session data |
-| `CODEX_PATH` | ~/.codex | Codex CLI session data |
-| `OPENCODE_PATH` | ~/.local/share/opencode | OpenCode session data |
-| `GEMINI_PATH` | ~/.gemini/history | Gemini CLI session data |
-| `OLLAMA_API` | http://localhost:11434 | Ollama server for embeddings |
-
-See [Configuration](/docs/memex/configuration) for all options.

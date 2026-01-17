@@ -155,22 +155,6 @@ The `main` module sets up periodic tasks:
 
 See [Scheduler Internals](/docs/memex/internals/scheduler) for detailed call trees.
 
-## Potentially Unused Code
-
-Static analysis detected 40 functions with no callers. Notable ones:
-
-| File | Functions | Notes |
-|------|-----------|-------|
-| `compressor.rs` | `with_level`, `with_threads`, `with_nice` | Builder pattern, may be for future use |
-| `compressor.rs` | `verify_archive` | Archive verification, not currently enabled |
-| `state.rs` | `start_task`, `update_status`, `record_failure` | State tracking, partially used |
-| `backup.rs` | `restore`, `get_latest_backup` | Restore feature not exposed |
-
-These may be:
-- Public API for library consumers
-- Called via macros or dynamic dispatch
-- Reserved for future features
-
 ---
 
-*This document was auto-generated using [iris](https://github.com/vimo-ai/iris) architecture analysis.*
+*Auto-generated using [iris](https://github.com/vimo-ai/iris) architecture analysis.*
