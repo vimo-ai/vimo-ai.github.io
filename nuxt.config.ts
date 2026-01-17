@@ -37,7 +37,7 @@ export default defineNuxtConfig({
       markdown: {
         highlight: {
           theme: 'vitesse-black',
-          langs: ['json', 'bash', 'shell', 'swift', 'typescript', 'javascript', 'markdown']
+          langs: ['json', 'bash', 'shell', 'swift', 'typescript', 'javascript', 'markdown', 'toml']
         }
       }
     }
