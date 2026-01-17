@@ -16,7 +16,7 @@ Memex is configured via environment variables. All settings have sensible defaul
 | `CLAUDE_PROJECTS_PATH` | `~/.claude/projects` | Claude Code sessions |
 | `CODEX_PATH` | `~/.codex` | Codex CLI sessions |
 | `OPENCODE_PATH` | `~/.local/share/opencode` | OpenCode sessions |
-| `GEMINI_PATH` | `~/.gemini/history` | Gemini CLI sessions |
+| `GEMINI_TMP_PATH` | `~/.gemini/tmp` | Gemini CLI sessions |
 | `OLLAMA_API` | `http://localhost:11434` | Ollama API endpoint |
 | `EMBEDDING_MODEL` | `bge-m3` | Model for embeddings |
 | `CHAT_MODEL` | `qwen3:8b` | Model for AI Q&A |
@@ -65,7 +65,7 @@ ollama list
 ls ~/.claude/projects/
 ls ~/.codex/
 ls ~/.local/share/opencode/
-ls ~/.gemini/history/
+ls ~/.gemini/tmp/
 
 # Trigger manual collection
 curl -X POST http://localhost:10013/api/collect

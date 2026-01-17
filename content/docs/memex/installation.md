@@ -40,28 +40,23 @@ Full server with MCP integration, Web UI, semantic search, and RAG.
 
 ```bash
 docker run -d -p 10013:10013 \
-  -v ~/.claude:/data/claude \
-  -v ~/.codex:/data/codex \
-  -v ~/.local/share/opencode:/data/opencode \
-  -v ~/.gemini:/data/gemini \
-  -v ~/.vimo:/data/vimo \
-  -e VIMO_HOME=/data/vimo \
-  -e CLAUDE_PROJECTS_PATH=/data/claude/projects \
-  -e CODEX_PATH=/data/codex \
-  -e OPENCODE_PATH=/data/opencode \
-  -e GEMINI_PATH=/data/gemini/history \
+  -v ~/.vimo/db:/data \
+  -v ~/.claude/projects:/claude:ro \
+  -v ~/.codex:/codex:ro \
+  -v ~/.local/share/opencode:/opencode:ro \
+  -v ~/.gemini/tmp:/gemini:ro \
   ghcr.io/vimo-ai/memex:latest
 ```
 
 | Mount | Purpose |
 |-------|---------|
-| `~/.claude` | Claude Code sessions |
-| `~/.codex` | Codex CLI sessions |
-| `~/.local/share/opencode` | OpenCode sessions |
-| `~/.gemini` | Gemini CLI sessions |
-| `~/.vimo` | Memex database & vectors |
+| `~/.vimo/db:/data` | Memex database & vectors (required) |
+| `~/.claude/projects:/claude` | Claude Code sessions |
+| `~/.codex:/codex` | Codex CLI sessions |
+| `~/.local/share/opencode:/opencode` | OpenCode sessions |
+| `~/.gemini/tmp:/gemini` | Gemini CLI sessions |
 
-Only mount the CLIs you use. `VIMO_HOME` is required.
+Only mount the CLIs you use. Database mount is required.
 
 ### Verify
 
