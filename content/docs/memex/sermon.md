@@ -107,7 +107,7 @@ If you're willing to try, the incantation is simple:
 
 ```bash
 docker run -d -p 10013:10013 \
-  -v ~/.vimo/db:/data \
+  -v ~/.vimo:/data \
   -v ~/.claude/projects:/claude:ro \
   -v ~/.codex:/codex:ro \
   -v ~/.local/share/opencode:/opencode:ro \

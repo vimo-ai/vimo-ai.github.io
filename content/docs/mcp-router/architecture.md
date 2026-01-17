@@ -69,8 +69,7 @@ Rust handles this. Swift calls into Rust via C FFI for the protocol work.
 Server configs and workspace settings are stored locally. The menu bar app manages everything — no external database.
 
 File locations:
-- `~/Library/Application Support/MCP Router/` — App data
-- `~/Library/Logs/MCP Router/` — Logs
+- `~/.vimo/mcp-router/` — Settings, workspaces, servers config
 
 ---
 

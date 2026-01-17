@@ -40,7 +40,7 @@ Full server with MCP integration, Web UI, semantic search, and RAG.
 
 ```bash
 docker run -d -p 10013:10013 \
-  -v ~/.vimo/db:/data \
+  -v ~/.vimo:/data \
   -v ~/.claude/projects:/claude:ro \
   -v ~/.codex:/codex:ro \
   -v ~/.local/share/opencode:/opencode:ro \
@@ -50,7 +50,7 @@ docker run -d -p 10013:10013 \
 
 | Mount | Purpose |
 |-------|---------|
-| `~/.vimo/db:/data` | Memex database & vectors (required) |
+| `~/.vimo:/data` | Memex data directory (database at `/data/db/`) |
 | `~/.claude/projects:/claude` | Claude Code sessions |
 | `~/.codex:/codex` | Codex CLI sessions |
 | `~/.local/share/opencode:/opencode` | OpenCode sessions |
@@ -79,7 +79,7 @@ cd memex
 
 # Full server
 cd memex-rs && cargo build --release
-./target/release/memex serve
+./target/release/memex
 
 # Lite CLI only
 cd memex-lite && cargo build --release

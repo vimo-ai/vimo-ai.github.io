@@ -67,7 +67,7 @@ If you just want a project to use most servers but skip a few, you can enable "I
 
 Settings → Integration. Click the button to write to Claude Code's global config. Done.
 
-This adds MCP Router to `~/.config/claude/settings.json`. Every project will use it.
+This adds MCP Router to `~/.claude.json`. Every project will use it.
 
 ### Per-Project Config
 
@@ -79,20 +79,15 @@ For project-specific setups, add `.mcp.json` in your project root with the token
 
 Same idea. Settings → Integration has a button for Codex too.
 
-Or manually add to `~/.codex/config.json`:
+Or manually add to `~/.codex/config.toml`:
 
-```json
-{
-  "mcpServers": {
-    "mcp-router": {
-      "type": "http",
-      "url": "http://localhost:19104",
-      "headers": {
-        "X-Workspace-Token": "your-token"
-      }
-    }
-  }
-}
+```toml
+[mcp_servers.mcp-router]
+type = "http"
+url = "http://localhost:19104"
+
+[mcp_servers.mcp-router.headers]
+X-Workspace-Token = "your-token"
 ```
 
 Without the token header, requests use the Default Workspace.

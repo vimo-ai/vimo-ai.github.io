@@ -60,7 +60,7 @@ Run as a service with MCP integration. Search history directly in Claude Code.
 
 ```bash [Terminal]
 docker run -d -p 10013:10013 \
-  -v ~/.vimo/db:/data \
+  -v ~/.vimo:/data \
   -v ~/.claude/projects:/claude:ro \
   -v ~/.codex:/codex:ro \
   -v ~/.local/share/opencode:/opencode:ro \
