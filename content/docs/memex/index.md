@@ -22,7 +22,7 @@ Memex adds long-term memory to AI coding assistants through on-demand search. In
 - ✅ Claude Code
 - ✅ Codex CLI
 - ✅ OpenCode
-- 🚧 Gemini CLI (coming soon)
+- ✅ Gemini CLI
 
 ## Key Capabilities
 
@@ -118,6 +118,7 @@ For detailed module dependencies and call graphs, see [Architecture](/docs/memex
 | `CLAUDE_PROJECTS_PATH` | ~/.claude/projects | Claude Code session data |
 | `CODEX_PATH` | ~/.codex | Codex CLI session data |
 | `OPENCODE_PATH` | ~/.local/share/opencode | OpenCode session data |
+| `GEMINI_PATH` | ~/.gemini/history | Gemini CLI session data |
 | `OLLAMA_API` | http://localhost:11434 | Ollama server for embeddings |
 
 See [Configuration](/docs/memex/configuration) for all options.

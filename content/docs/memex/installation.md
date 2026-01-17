@@ -28,6 +28,42 @@ This mounts:
 - Memex also auto-detects Codex CLI (`~/.codex`) and OpenCode (`~/.local/share/opencode`) if present
 - Without these, Memex won't find your data inside the container
 
+## Memex Lite (CLI)
+
+For quick searches without running a server, use Memex Lite - a zero-dependency CLI tool.
+
+### Install via Homebrew
+
+```bash
+brew tap vimo-ai/tap
+brew install memex-lite
+```
+
+### Usage
+
+```bash
+# Search across all AI CLIs
+memex search "authentication"
+
+# Filter by CLI type
+memex search "bug fix" --source claude
+
+# List recent sessions
+memex list -n 10
+
+# View a specific session
+memex view <session-id>
+
+# Show available data sources
+memex sources
+```
+
+Memex Lite directly reads JSONL files without any database, perfect for:
+- Quick one-off searches
+- New machines without full setup
+- CI/CD environments
+- Resource-constrained systems
+
 ## Build from Source
 
 ### Prerequisites
@@ -40,14 +76,16 @@ This mounts:
 
 ```bash
 git clone https://github.com/vimo-ai/memex.git
+
+# Full server
 cd memex/memex-rs
 cargo build --release
-```
-
-### Run
-
-```bash
 ./target/release/memex serve
+
+# Or Lite CLI only
+cd memex/memex-lite
+cargo build --release
+./target/release/memex --help
 ```
 
 The server starts on `http://localhost:10013` by default.

@@ -18,6 +18,7 @@ Memex is configured via environment variables. All settings have sensible defaul
 | `CLAUDE_PROJECTS_PATH` | `~/.claude/projects` | Claude Code session data location |
 | `CODEX_PATH` | `~/.codex` | Codex CLI data location |
 | `OPENCODE_PATH` | `~/.local/share/opencode` | OpenCode data location |
+| `GEMINI_PATH` | `~/.gemini/history` | Gemini CLI data location |
 | `OLLAMA_API` | `http://localhost:11434` | Ollama API endpoint |
 | `EMBEDDING_MODEL` | `bge-m3` | Ollama model for embeddings |
 | `CHAT_MODEL` | `qwen3:8b` | Ollama model for AI Q&A |
@@ -37,6 +38,7 @@ Memex separates data storage from web frontend:
 | `{CLAUDE_PROJECTS_PATH}/` | Claude Code session files (source) |
 | `{CODEX_PATH}/` | Codex CLI session files (source) |
 | `{OPENCODE_PATH}/` | OpenCode session files (source) |
+| `{GEMINI_PATH}/` | Gemini CLI session files (source) |
 
 **Architecture**: Database (`~/.vimo/db/`) is shared across Vimo tools. Web UI (`~/.vimo/memex/web/`) is Memex-specific.
 
@@ -206,6 +208,7 @@ If `/api/stats` shows `sessionCount: 0`:
    - Claude Code: `ls ~/.claude/projects/`
    - Codex CLI: `ls ~/.codex/`
    - OpenCode: `ls ~/.local/share/opencode/`
+   - Gemini CLI: `ls ~/.gemini/history/`
 2. Trigger manual collection: `curl -X POST http://localhost:10013/api/collect`
 3. For Docker: ensure environment variables point to container paths
 4. Check logs for path errors
