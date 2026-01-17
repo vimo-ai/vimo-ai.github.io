@@ -5,6 +5,14 @@ navigation:
   order: 1
 ---
 
+<div class="flex justify-center my-8">
+  <img src="/logos/memex.svg" alt="Memex Logo" class="w-64" />
+</div>
+
+<p class="text-center text-lg text-gray-400 mb-8">
+  One Memory. All CLIs. Never Compacted. Exact Search.
+</p>
+
 ## What is Memex?
 
 Memex adds long-term memory to AI coding assistants through on-demand search. Instead of losing your valuable conversations, you can search and retrieve precise context whenever you need it.
