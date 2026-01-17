@@ -61,6 +61,21 @@ export const docsProjects: ProjectConfig[] = [
         ]
       }
     ]
+  },
+  {
+    id: 'mcp-router',
+    label: 'MCP Router',
+    description: 'One endpoint for all MCP servers',
+    color: '#00f3ff',
+    // Router/network hub icon
+    icon: 'M50 20 L50 35 M50 65 L50 80 M20 50 L35 50 M65 50 L80 50 M50 50 m-15 0 a15 15 0 1 0 30 0 a15 15 0 1 0 -30 0 M35 35 L25 25 M65 35 L75 25 M35 65 L25 75 M65 65 L75 75',
+    navigation: [
+      { title: 'Introduction', path: '/docs/mcp-router' },
+      { title: 'Why MCP Router', path: '/docs/mcp-router/why' },
+      { title: 'Installation', path: '/docs/mcp-router/installation' },
+      { title: 'Usage Guide', path: '/docs/mcp-router/usage' },
+      { title: 'Architecture', path: '/docs/mcp-router/architecture' }
+    ]
   }
 ]
 
