@@ -25,28 +25,47 @@ curl -X POST http://localhost:10013/api/mcp \
 
 ### search_history
 
-Search conversation history using full-text, semantic, or hybrid mode.
+Search conversation history with progressive disclosure.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `query` | string | Yes | Search keywords |
-| `mode` | string | No | `fts`, `vector`, or `hybrid` (default) |
-| `cwd` | string | No | Filter by project path |
-| `limit` | number | No | Max results (default: 10) |
+| `level` | string | No | Detail level: `sessions` (default), `talks`, `raw` |
+| `cwd` | string | No | Filter to current project only |
+| `time` | string | No | Time shortcut: `1d`, `3d`, `1w`, `1m` |
+| `from` | string | No | Start date `YYYY-MM-DD` (mutually exclusive with `time`) |
+| `to` | string | No | End date `YYYY-MM-DD` (mutually exclusive with `time`) |
+| `limit` | number | No | Max results (default: 5) |
+
+**Level options:**
+
+| Level | Returns | Use when |
+|-------|---------|----------|
+| `sessions` | L3 session summaries | Quick overview (default) |
+| `talks` | L2 per-prompt summaries | Need more detail |
+| `raw` | L0 original messages | Need exact content |
 
 ### get_session
 
-Get session details with pagination.
+Get session messages. Two modes available:
+
+**Mode 1: Around position** - Get context around a specific message
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
 | `sessionId` | string | Yes | Session ID (full or prefix) |
-| `offset` | number | No | Start from message N |
-| `limit` | number | No | Number of messages (default: 10) |
-| `order` | string | No | `asc` or `desc` |
-| `search` | string | No | Search within session |
+| `around` | number | Yes | Position from `search_history` result `at` field |
+| `context` | number | No | Messages before/after (default: 5, max: 20) |
 
-Note: Content truncated to 500 chars when `limit > 5`.
+**Mode 2: Pagination** - Browse from start or end
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `sessionId` | string | Yes | Session ID (full or prefix) |
+| `limit` | number | No | Messages to return (default: 10) |
+| `order` | string | No | `asc` (from start) or `desc` (from end) |
+
+Note: Content truncated when `limit > 5`.
 
 ### get_recent_sessions
 
@@ -54,12 +73,23 @@ Get recent sessions, optionally filtered by project.
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `cwd` | string | No | Filter by project path |
-| `limit` | number | No | Number of sessions (default: 5) |
+| `cwd` | string | No | Filter to current project |
+| `limit` | number | No | Max results (default: 5) |
 
 ### list_projects
 
 List all projects with statistics. No parameters.
+
+---
+
+## Typical Workflow
+
+```
+1. search_history "authentication" → find relevant sessions
+2. get_session sessionId=xxx around=42 → get context around match
+```
+
+The `at` field in search results can be passed directly to `get_session`'s `around` parameter.
 
 ---
 
