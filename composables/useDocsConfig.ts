@@ -54,6 +54,13 @@ export const docsProjects: ProjectConfig[] = [
       { title: 'MCP Tools', path: '/docs/memex/mcp' },
       { title: 'Architecture', path: '/docs/memex/architecture' },
       {
+        title: 'Advanced',
+        path: '/docs/memex/advanced',
+        children: [
+          { title: 'Claude Code Hooks', path: '/docs/memex/advanced/hooks' }
+        ]
+      },
+      {
         title: 'Internals',
         path: '/docs/memex/internals',
         children: [

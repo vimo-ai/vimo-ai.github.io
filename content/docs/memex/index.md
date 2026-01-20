@@ -108,3 +108,4 @@ use memex search "anything you want"
 - [API Reference](/docs/memex/api) - REST API endpoints
 - [MCP Tools](/docs/memex/mcp) - Claude Code integration
 - [Architecture](/docs/memex/architecture) - Module dependencies and design
+- [Advanced](/docs/memex/advanced) - Claude Code Hooks and more

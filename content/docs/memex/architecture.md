@@ -2,7 +2,7 @@
 title: Architecture
 description: Memex internal architecture and module dependencies
 navigation:
-  order: 6
+  order: 7
 ---
 
 This document describes Memex's internal architecture, auto-generated from source code analysis.
