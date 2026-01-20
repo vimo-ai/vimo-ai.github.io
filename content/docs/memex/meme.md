@@ -1,6 +1,5 @@
 ---
-title: The Sermon
-description: A different way to understand Memex
+title: " "
 navigation: false
 ---
 

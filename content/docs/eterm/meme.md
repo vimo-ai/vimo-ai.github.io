@@ -1,6 +1,5 @@
 ---
-title: The Confession
-description: A different way to understand ETerm
+title: " "
 navigation: false
 ---
 

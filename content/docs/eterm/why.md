@@ -5,7 +5,7 @@ navigation:
   order: 2
 ---
 
-*Or, prefer the confession version? [This way, sir/madam 🕯️](/docs/eterm/sermon)*
+*Or, prefer the meme version? [This way, sir/madam 🕯️](/docs/eterm/meme)*
 
 ---
 

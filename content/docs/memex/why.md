@@ -5,7 +5,7 @@ navigation:
   order: 2
 ---
 
-*Or, prefer the sermon version? [This way, sir/madam 🕯️](/docs/memex/sermon)*
+*Or, prefer the meme version? [This way, sir/madam 🕯️](/docs/memex/meme)*
 
 ---
 
