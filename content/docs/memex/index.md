@@ -107,5 +107,5 @@ use memex search "anything you want"
 - [Configuration](/docs/memex/configuration) - Environment variables and options
 - [API Reference](/docs/memex/api) - REST API endpoints
 - [MCP Tools](/docs/memex/mcp) - Claude Code integration
-- [Architecture](/docs/memex/architecture) - Module dependencies and design
+- [How it Works](/docs/memex/how-it-works) - Data flow, architecture, and internals
 - [Advanced](/docs/memex/advanced) - Claude Code Hooks and more

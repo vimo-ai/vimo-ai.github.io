@@ -52,19 +52,21 @@ export const docsProjects: ProjectConfig[] = [
       { title: 'Configuration', path: '/docs/memex/configuration' },
       { title: 'API Reference', path: '/docs/memex/api' },
       { title: 'MCP Tools', path: '/docs/memex/mcp' },
-      { title: 'Architecture', path: '/docs/memex/architecture' },
+      {
+        title: 'How it Works',
+        path: '/docs/memex/how-it-works',
+        children: [
+          { title: 'Collection', path: '/docs/memex/how-it-works/collection' },
+          { title: 'Storage', path: '/docs/memex/how-it-works/storage' },
+          { title: 'Compact', path: '/docs/memex/how-it-works/compact' },
+          { title: 'Search', path: '/docs/memex/how-it-works/search' }
+        ]
+      },
       {
         title: 'Advanced',
         path: '/docs/memex/advanced',
         children: [
           { title: 'Claude Code Hooks', path: '/docs/memex/advanced/hooks' }
-        ]
-      },
-      {
-        title: 'Internals',
-        path: '/docs/memex/internals',
-        children: [
-          { title: 'Scheduler', path: '/docs/memex/internals/scheduler' }
         ]
       }
     ]
