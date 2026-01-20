@@ -24,14 +24,15 @@ Memex adds long-term memory to AI coding assistants through on-demand search. In
 - ✅ OpenCode
 - ✅ Gemini CLI
 
-## Key Capabilities
+## Features
 
-- **On-Demand Search** - You control when to search, no automatic injection
-- **Complete Preservation** - Stores original records without AI compression
-- **Powerful Search** - FTS5 full-text + semantic vectors + hybrid ranking
-- **MCP Integration** - Search directly from Claude Code conversations
-- **Web UI** - Visual browsing, RAG Q&A, statistics dashboard
-- **REST API** - Integrate into any toolchain
+- **On-demand search** - You control when to search; automatic injection is opt-in
+- **Original preservation** - Raw messages always kept; summaries are optional layers
+- **Multi-CLI support** - Claude Code, Codex, OpenCode, Gemini in one database
+- **Powerful search** - Full-text (FTS5) + semantic vectors + hybrid ranking
+- **MCP integration** - Search directly from your AI CLI
+- **REST API** - Integrate into any workflow
+- **Local storage** - All data stays on your machine
 
 ::callout{type="info"}
 **Why Memex?** Read the full explanation in [Why Memex?](/docs/memex/why)
