@@ -98,7 +98,7 @@ For semantic search and RAG:
 brew install ollama
 ollama serve
 ollama pull bge-m3      # embeddings
-ollama pull qwen3:8b    # chat (optional)
+ollama pull qwen3:0.6b  # chat (optional)
 ```
 
 Memex auto-detects Ollama at `http://localhost:11434`.
