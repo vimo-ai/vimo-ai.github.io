@@ -40,24 +40,26 @@ Memex adds long-term memory to AI coding assistants through on-demand search. In
 
 ## Quick Start
 
-### Lite (Quick Search)
-
-Reads local session data directly, no server needed. Perfect for quick one-off searches.
+### Full
 
 ```bash [Terminal]
 brew install vimo-ai/tap/memex
-```
 
-```bash [Terminal]
-memex search "authentication"
+memex search "anything you want"
 memex list -n 10
 ```
 
-### Full (Recommended)
+### Lite
 
-Run as a service with MCP integration. Search history directly in Claude Code.
+Zero-dependency version, reads local session data directly:
 
-**1. Start Docker**
+```bash [Terminal]
+brew install vimo-ai/tap/memex-lite
+```
+
+### Full (Docker)
+
+For Linux and other platforms:
 
 ```bash [Terminal]
 docker run -d -p 10013:10013 \
@@ -69,7 +71,7 @@ docker run -d -p 10013:10013 \
   ghcr.io/vimo-ai/memex:latest
 ```
 
-**2. Configure MCP**
+### Configure MCP
 
 ::code-group
 ```bash [Claude Code]
@@ -94,17 +96,17 @@ gemini mcp add --transport http memex http://localhost:10013/api/mcp
 ```
 ::
 
-**3. Use in Your AI CLI**
-
-Restart your AI CLI, then search history:
+Then search in your AI CLI:
 
 ```
 use memex search "anything you want"
 ```
 
+The background agent (`vimo-agent`) will be downloaded automatically on first run. If auto-download fails, see [Installation](/docs/memex/installation#troubleshooting).
+
 ## Documentation
 
-- [Installation](/docs/memex/installation) - Docker, build from source, system service
+- [Installation](/docs/memex/installation) - Docker, build from source, troubleshooting
 - [Configuration](/docs/memex/configuration) - Environment variables and options
 - [API Reference](/docs/memex/api) - REST API endpoints
 - [MCP Tools](/docs/memex/mcp) - Claude Code integration

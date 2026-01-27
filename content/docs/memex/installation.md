@@ -5,38 +5,44 @@ navigation:
   order: 2
 ---
 
-## Memex Lite
+## Memex Full
 
-Standalone CLI for quick searches. Reads local session files directly, no server needed.
+Full server with MCP integration, Web UI, semantic search, and RAG.
 
 ::code-group
 ```bash [Homebrew]
 brew install vimo-ai/tap/memex
 ```
 ```bash [macOS Apple Silicon]
-curl -L https://github.com/vimo-ai/memex/releases/latest/download/memex-darwin-arm64.tar.gz | tar xz
-sudo mv memex /usr/local/bin/
+mkdir -p ~/.vimo/bin && curl -L -o ~/.vimo/bin/memex \
+  https://github.com/vimo-ai/memex/releases/latest/download/memex-darwin-arm64 && \
+  chmod +x ~/.vimo/bin/memex
 ```
 ```bash [macOS Intel]
-curl -L https://github.com/vimo-ai/memex/releases/latest/download/memex-darwin-x64.tar.gz | tar xz
-sudo mv memex /usr/local/bin/
+mkdir -p ~/.vimo/bin && curl -L -o ~/.vimo/bin/memex \
+  https://github.com/vimo-ai/memex/releases/latest/download/memex-darwin-x64 && \
+  chmod +x ~/.vimo/bin/memex
 ```
 ```bash [Linux x64]
-curl -L https://github.com/vimo-ai/memex/releases/latest/download/memex-linux-x64.tar.gz | tar xz
-sudo mv memex /usr/local/bin/
+mkdir -p ~/.vimo/bin && curl -L -o ~/.vimo/bin/memex \
+  https://github.com/vimo-ai/memex/releases/latest/download/memex-linux-x64 && \
+  chmod +x ~/.vimo/bin/memex
+```
+```bash [Linux arm64]
+mkdir -p ~/.vimo/bin && curl -L -o ~/.vimo/bin/memex \
+  https://github.com/vimo-ai/memex/releases/latest/download/memex-linux-arm64 && \
+  chmod +x ~/.vimo/bin/memex
 ```
 ::
 
 ```bash
-memex search "authentication"
+memex search "anything you want"
 memex list -n 10
 ```
 
----
+The background agent (`vimo-agent`) will be downloaded automatically on first run.
 
-## Memex Full (Docker)
-
-Full server with MCP integration, Web UI, semantic search, and RAG.
+### Docker (Linux / All Platforms)
 
 ```bash
 docker run -d -p 10013:10013 \
@@ -67,7 +73,20 @@ curl http://localhost:10013/health
 
 ### MCP Integration
 
-See [Quick Start](/docs/memex#full-recommended) for MCP configuration.
+See [Quick Start](/docs/memex#full-macos) for MCP configuration.
+
+---
+
+## Memex Lite
+
+Zero-dependency standalone CLI for quick searches. Reads local session files directly, no server needed.
+
+```bash
+brew install vimo-ai/tap/memex-lite
+
+memex search "anything you want"
+memex list -n 10
+```
 
 ---
 
@@ -102,4 +121,18 @@ ollama pull qwen3:0.6b  # chat (optional)
 ```
 
 Memex auto-detects Ollama at `http://localhost:11434`.
+
+---
+
+## Troubleshooting
+
+### vimo-agent auto-download failed
+
+The background agent (`vimo-agent`) is downloaded automatically on first run. If auto-download fails, you can install it manually:
+
+```bash
+curl -L -o ~/.vimo/bin/vimo-agent \
+  https://github.com/vimo-ai/ai-cli-session-db/releases/latest/download/vimo-agent
+chmod +x ~/.vimo/bin/vimo-agent
+```
 
