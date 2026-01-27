@@ -37,5 +37,3 @@ Memex gives your AI coding assistants long-term memory by:
 - [Storage](/docs/memex/how-it-works/storage) - SQLite and LanceDB architecture
 - [Compact](/docs/memex/how-it-works/compact) - Multi-level summary system (L0-L3)
 - [Search](/docs/memex/how-it-works/search) - Full-text, semantic, and hybrid search
-- [Architecture](/docs/memex/how-it-works/architecture) - Module dependencies and code structure
-- [Scheduler](/docs/memex/how-it-works/scheduler) - Background tasks and timing
