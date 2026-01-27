@@ -9,60 +9,48 @@ navigation:
 
 Full server with MCP integration, Web UI, semantic search, and RAG.
 
-::code-group
-```bash [Homebrew]
+### Homebrew (macOS / Linux)
+
+```bash
 brew install vimo-ai/tap/memex
 ```
-```bash [macOS Apple Silicon]
-mkdir -p ~/.vimo/bin && curl -L -o ~/.vimo/bin/memex \
-  https://github.com/vimo-ai/memex/releases/latest/download/memex-darwin-arm64 && \
-  chmod +x ~/.vimo/bin/memex
-```
-```bash [macOS Intel]
-mkdir -p ~/.vimo/bin && curl -L -o ~/.vimo/bin/memex \
-  https://github.com/vimo-ai/memex/releases/latest/download/memex-darwin-x64 && \
-  chmod +x ~/.vimo/bin/memex
-```
-```bash [Linux x64]
-mkdir -p ~/.vimo/bin && curl -L -o ~/.vimo/bin/memex \
-  https://github.com/vimo-ai/memex/releases/latest/download/memex-linux-x64 && \
-  chmod +x ~/.vimo/bin/memex
-```
-```bash [Linux arm64]
-mkdir -p ~/.vimo/bin && curl -L -o ~/.vimo/bin/memex \
-  https://github.com/vimo-ai/memex/releases/latest/download/memex-linux-arm64 && \
-  chmod +x ~/.vimo/bin/memex
-```
-::
 
-```bash
-memex search "anything you want"
-memex list -n 10
-```
+### Docker
 
-The background agent (`vimo-agent`) will be downloaded automatically on first run.
-
-### Docker (Linux / All Platforms)
-
-```bash
+::code-group
+```bash [macOS / Linux]
 docker run -d -p 10013:10013 \
   -v ~/.vimo:/data \
   -v ~/.claude/projects:/claude:ro \
-  -v ~/.codex:/codex:ro \
-  -v ~/.local/share/opencode:/opencode:ro \
-  -v ~/.gemini/tmp:/gemini:ro \
+  -v ~/.codex:/codex:ro \                              # 可选: Codex
+  -v ~/.local/share/opencode:/opencode:ro \            # 可选: OpenCode
+  -v ~/.gemini/tmp:/gemini:ro \                        # 可选: Gemini
+  -e OLLAMA_HOST=http://host.docker.internal:11434 \   # 可选: 本机 Ollama (Docker Desktop)
   ghcr.io/vimo-ai/memex:latest
 ```
+```ps1 [Windows (PowerShell)]
+docker run -d -p 10013:10013 `
+  -v "$env:USERPROFILE\.vimo:/data" `
+  -v "$env:USERPROFILE\.claude\projects:/claude:ro" `
+  -v "$env:USERPROFILE\.codex:/codex:ro" `             # 可选: Codex
+  -v "$env:LOCALAPPDATA\opencode:/opencode:ro" `       # 可选: OpenCode
+  -v "$env:USERPROFILE\.gemini\tmp:/gemini:ro" `       # 可选: Gemini
+  -e OLLAMA_HOST=http://host.docker.internal:11434 `   # 可选: 本机 Ollama (Docker Desktop)
+  ghcr.io/vimo-ai/memex:latest
+```
+::
 
 | Mount | Purpose |
 |-------|---------|
-| `~/.vimo:/data` | Memex data directory (database at `/data/db/`) |
+| `~/.vimo:/data` | Memex data directory (required) |
 | `~/.claude/projects:/claude` | Claude Code sessions |
-| `~/.codex:/codex` | Codex CLI sessions |
-| `~/.local/share/opencode:/opencode` | OpenCode sessions |
-| `~/.gemini/tmp:/gemini` | Gemini CLI sessions |
+| `~/.codex:/codex` | Codex CLI sessions (optional) |
+| `~/.local/share/opencode:/opencode` | OpenCode sessions (optional) |
+| `~/.gemini/tmp:/gemini` | Gemini CLI sessions (optional) |
 
-Only mount the CLIs you use. Database mount is required.
+### Binary
+
+Download from [GitHub Releases](https://github.com/vimo-ai/memex/releases). Available for macOS (arm64/x64), Linux (x64/arm64), and Windows (x64).
 
 ### Verify
 
@@ -73,7 +61,34 @@ curl http://localhost:10013/health
 
 ### MCP Integration
 
-See [Quick Start](/docs/memex#full-macos) for MCP configuration.
+::code-group
+```bash [Claude Code]
+claude mcp add memex -- npx -y mcp-remote http://localhost:10013/api/mcp
+```
+```bash [Codex]
+codex mcp add memex -- npx -y mcp-remote http://localhost:10013/api/mcp
+```
+```bash [Gemini]
+gemini mcp add --transport http memex http://localhost:10013/api/mcp
+```
+```json [OpenCode]
+// Edit ~/.config/opencode/opencode.json
+{
+  "mcp": {
+    "memex": {
+      "type": "remote",
+      "url": "http://localhost:10013/api/mcp"
+    }
+  }
+}
+```
+::
+
+Then search in your AI CLI:
+
+```
+use memex search "anything you want"
+```
 
 ---
 
@@ -128,11 +143,9 @@ Memex auto-detects Ollama at `http://localhost:11434`.
 
 ### vimo-agent auto-download failed
 
-The background agent (`vimo-agent`) is downloaded automatically on first run. If auto-download fails, you can install it manually:
+The background agent (`vimo-agent`) is downloaded automatically on first run. If auto-download fails, download manually from [ai-cli-session-db Releases](https://github.com/vimo-ai/ai-cli-session-db/releases) and place it at `~/.vimo/bin/vimo-agent`.
 
-```bash
-curl -L -o ~/.vimo/bin/vimo-agent \
-  https://github.com/vimo-ai/ai-cli-session-db/releases/latest/download/vimo-agent
-chmod +x ~/.vimo/bin/vimo-agent
-```
+::callout{type="info"}
+Docker users don't need to worry about this - `vimo-agent` is bundled in the image.
+::
 

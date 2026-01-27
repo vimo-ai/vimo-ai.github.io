@@ -40,38 +40,51 @@ Memex adds long-term memory to AI coding assistants through on-demand search. In
 
 ## Quick Start
 
-### Full
+### Homebrew (macOS / Linux)
 
-```bash [Terminal]
+::code-group
+```bash [Full]
 brew install vimo-ai/tap/memex
+
+# Verify server is running
+curl http://localhost:10013/health
+# OK
+```
+```bash [Lite]
+# Zero-dependency CLI, reads local sessions directly
+brew install vimo-ai/tap/memex-lite
 
 memex search "anything you want"
 memex list -n 10
 ```
+::
 
-### Lite
+### Docker
 
-Zero-dependency version, reads local session data directly:
-
-```bash [Terminal]
-brew install vimo-ai/tap/memex-lite
-```
-
-### Full (Docker)
-
-For Linux and other platforms:
-
-```bash [Terminal]
+::code-group
+```bash [macOS / Linux]
 docker run -d -p 10013:10013 \
   -v ~/.vimo:/data \
   -v ~/.claude/projects:/claude:ro \
-  -v ~/.codex:/codex:ro \
-  -v ~/.local/share/opencode:/opencode:ro \
-  -v ~/.gemini/tmp:/gemini:ro \
+  -v ~/.codex:/codex:ro \                              # 可选: Codex
+  -v ~/.local/share/opencode:/opencode:ro \            # 可选: OpenCode
+  -v ~/.gemini/tmp:/gemini:ro \                        # 可选: Gemini
+  -e OLLAMA_HOST=http://host.docker.internal:11434 \   # 可选: 本机 Ollama (Docker Desktop)
   ghcr.io/vimo-ai/memex:latest
 ```
+```ps1 [Windows (PowerShell)]
+docker run -d -p 10013:10013 `
+  -v "$env:USERPROFILE\.vimo:/data" `
+  -v "$env:USERPROFILE\.claude\projects:/claude:ro" `
+  -v "$env:USERPROFILE\.codex:/codex:ro" `             # 可选: Codex
+  -v "$env:LOCALAPPDATA\opencode:/opencode:ro" `       # 可选: OpenCode
+  -v "$env:USERPROFILE\.gemini\tmp:/gemini:ro" `       # 可选: Gemini
+  -e OLLAMA_HOST=http://host.docker.internal:11434 `   # 可选: 本机 Ollama (Docker Desktop)
+  ghcr.io/vimo-ai/memex:latest
+```
+::
 
-### Configure MCP
+### Configure MCP (Full / Docker)
 
 ::code-group
 ```bash [Claude Code]
@@ -101,8 +114,6 @@ Then search in your AI CLI:
 ```
 use memex search "anything you want"
 ```
-
-The background agent (`vimo-agent`) will be downloaded automatically on first run. If auto-download fails, see [Installation](/docs/memex/installation#troubleshooting).
 
 ## Documentation
 
