@@ -32,7 +32,7 @@ Search conversation history with progressive disclosure.
 | `query` | string | Yes | Search keywords |
 | `level` | string | No | Detail level: `sessions` (default), `talks`, `raw` |
 | `cwd` | string \| string[] | No | Filter to specific project(s). Supports exact path, prefix, or glob patterns (e.g. `*/ETerm*`) |
-| `exclude_cwd` | string \| string[] | No | Exclude specific project(s). Supports exact path, prefix, or glob patterns (e.g. `*english*`) |
+| `exclude_cwd` | string \| string[] | No | Exclude specific project(s). Supports exact path, prefix, or glob patterns (e.g. `*memex*`) |
 | `time` | string | No | Time shortcut: `1d`, `3d`, `1w`, `1m` |
 | `from` | string | No | Start date `YYYY-MM-DD` (mutually exclusive with `time`) |
 | `to` | string | No | End date `YYYY-MM-DD` (mutually exclusive with `time`) |
@@ -59,7 +59,7 @@ Search conversation history with progressive disclosure.
 { "cwd": "*/ETerm*" }
 
 // Exclude projects
-{ "exclude_cwd": "*english*" }
+{ "exclude_cwd": "*memex*" }
 
 // Combined: include some, exclude others
 { "cwd": "*/vimo/*", "exclude_cwd": ["*test*", "*archive*"] }
@@ -108,7 +108,7 @@ List all projects with statistics. No parameters.
 ## Typical Workflow
 
 ```
-1. search_history "authentication" → find relevant sessions
+1. search_history "anything you want" → find relevant sessions
 2. get_session sessionId=xxx around=42 → get context around match
 ```
 
@@ -121,7 +121,7 @@ The `at` field in search results can be passed directly to `get_session`'s `arou
 In your AI CLI:
 
 ```
-search my history for "authentication"
+search my history for "anything you want"
 ```
 
 The AI will call `search_history` and return relevant conversations.

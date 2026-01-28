@@ -7,9 +7,9 @@
           :to="`/docs/${currentProject.id}`"
           class="text-lg font-bold text-neon-cyan hover:text-neon-pink transition-colors"
         >
-          {{ currentProject.label }}
+          {{ $t(currentProject.labelKey) }}
         </NuxtLink>
-        <p class="text-xs text-gray-500 mt-1">{{ currentProject.description }}</p>
+        <p class="text-xs text-gray-500 mt-1">{{ $t(currentProject.descriptionKey) }}</p>
       </div>
 
       <!-- Navigation -->
@@ -22,7 +22,7 @@
               ? 'bg-gray-800 text-neon-cyan'
               : 'text-gray-400 hover:text-gray-200 hover:bg-gray-800/50'"
           >
-            {{ item.title }}
+            {{ $t(item.titleKey) }}
           </NuxtLink>
 
           <!-- Children -->
@@ -35,7 +35,7 @@
                   ? 'bg-gray-800 text-neon-cyan'
                   : 'text-gray-500 hover:text-gray-300 hover:bg-gray-800/50'"
               >
-                {{ child.title }}
+                {{ $t(child.titleKey) }}
               </NuxtLink>
             </li>
           </ul>

@@ -4,15 +4,66 @@
     "docs": "Docs",
     "about": "About",
     "community": "Community",
-    "roadmap": "Roadmap"
+    "roadmap": "Roadmap",
+    "back_to_docs": "Back to Docs",
+    "back_to_home": "Back to Home"
   },
   "docs": {
-    "sidebar": {
-      "getting_started": "Getting Started",
+    "index": {
+      "title": "DOCUMENTATION",
+      "subtitle": "Select a project to explore its documentation"
+    },
+    "not_found": {
+      "title": "Document not found",
+      "link": "Go to Docs"
+    },
+    "nav": {
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "projects": {
+      "eterm": {
+        "label": "ETerm",
+        "description": "Terminal for AI CLI workflows"
+      },
+      "memex": {
+        "label": "Memex",
+        "description": "Claude Code session history"
+      },
+      "mcp_router": {
+        "label": "MCP Router",
+        "description": "One endpoint for all MCP servers"
+      }
+    },
+    "eterm": {
+      "introduction": "Introduction",
+      "why": "Why ETerm",
+      "installation": "Installation",
       "architecture": "Architecture",
-      "tech_deep_dive": "Tech Deep-dive",
-      "api_reference": "API Reference",
-      "mcp_integration": "MCP Integration"
+      "plugins": "Plugins",
+      "plugin_sdk": "Plugin SDK"
+    },
+    "memex": {
+      "introduction": "Introduction",
+      "why": "Why Memex",
+      "installation": "Installation",
+      "configuration": "Configuration",
+      "api": "API Reference",
+      "mcp": "MCP Tools",
+      "how_it_works": "How it Works",
+      "collection": "Collection",
+      "storage": "Storage",
+      "compact": "Compact",
+      "search": "Search",
+      "advanced": "Advanced",
+      "hooks": "Claude Code Hooks"
+    },
+    "mcp_router": {
+      "introduction": "Introduction",
+      "why": "Why MCP Router",
+      "installation": "Installation",
+      "usage": "Usage Guide",
+      "architecture": "Architecture"
     }
   },
   "common": {

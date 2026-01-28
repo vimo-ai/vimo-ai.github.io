@@ -11,7 +11,7 @@
       <main class="flex-1 min-w-0 px-6 py-12 lg:px-12">
         <!-- Back Link (mobile) -->
         <NuxtLink to="/docs" class="text-neon-cyan hover:underline mb-8 inline-block lg:hidden">
-          &larr; Back to Docs
+          &larr; {{ $t('nav.back_to_docs') }}
         </NuxtLink>
 
         <!-- Content -->
@@ -22,9 +22,9 @@
         </article>
 
         <div v-else class="text-center py-20">
-          <h1 class="text-2xl text-gray-500">Document not found</h1>
+          <h1 class="text-2xl text-gray-500">{{ $t('docs.not_found.title') }}</h1>
           <NuxtLink to="/docs" class="text-neon-cyan hover:underline mt-4 inline-block">
-            Go to Docs
+            {{ $t('docs.not_found.link') }}
           </NuxtLink>
         </div>
 
@@ -38,8 +38,8 @@
             >
               <span class="text-xl">&larr;</span>
               <div>
-                <div class="text-xs text-gray-500 group-hover:text-gray-400">Previous</div>
-                <div>{{ prevPage.title }}</div>
+                <div class="text-xs text-gray-500 group-hover:text-gray-400">{{ $t('docs.nav.previous') }}</div>
+                <div>{{ $t(prevPage.titleKey) }}</div>
               </div>
             </NuxtLink>
             <div v-else></div>
@@ -50,8 +50,8 @@
               class="group flex items-center gap-2 text-gray-400 hover:text-neon-cyan transition-colors text-right"
             >
               <div>
-                <div class="text-xs text-gray-500 group-hover:text-gray-400">Next</div>
-                <div>{{ nextPage.title }}</div>
+                <div class="text-xs text-gray-500 group-hover:text-gray-400">{{ $t('docs.nav.next') }}</div>
+                <div>{{ $t(nextPage.titleKey) }}</div>
               </div>
               <span class="text-xl">&rarr;</span>
             </NuxtLink>
@@ -63,7 +63,7 @@
       <!-- Table of Contents (right sidebar) -->
       <aside v-if="doc && toc.length > 0" class="hidden xl:block w-64 flex-shrink-0 p-4">
         <div class="sticky top-20">
-          <h4 class="text-sm font-semibold text-gray-400 mb-3">On this page</h4>
+          <h4 class="text-sm font-semibold text-gray-400 mb-3">{{ $t('common.on_this_page') }}</h4>
           <ul class="space-y-2 text-sm">
             <li v-for="item in toc" :key="item.id">
               <a
@@ -86,6 +86,7 @@ import { useDocsConfig } from '~/composables/useDocsConfig'
 
 const route = useRoute()
 const { flatNavigation } = useDocsConfig()
+const { locale } = useI18n()
 
 // Build path from slug
 const slug = computed(() => {
@@ -96,9 +97,11 @@ const slug = computed(() => {
 // Check if current doc is under /docs/eterm/
 const isEtermDoc = computed(() => slug.value.startsWith('eterm'))
 
-const { data: doc } = await useAsyncData(`doc-${slug.value}`, () => {
-  return queryCollection('docs').path(`/docs/${slug.value}`).first()
-})
+const { data: doc } = await useAsyncData(
+  () => `doc-${locale.value}-${slug.value}`,
+  () => queryCollection('docs').path(`/${locale.value}/docs/${slug.value}`).first(),
+  { watch: [locale, slug] }
+)
 
 // Find current index in flat navigation
 const currentIndex = computed(() => {

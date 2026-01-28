@@ -21,13 +21,13 @@ export default defineNuxtConfig({
       { code: 'zh', language: 'zh-CN', name: '中文', file: 'zh.json' }
     ],
     defaultLocale: 'en',
-    strategy: 'prefix_except_default',
-    lazy: true,
+    strategy: 'no_prefix',
     langDir: 'locales/',
     detectBrowserLanguage: {
       useCookie: true,
       cookieKey: 'i18n_redirected',
-      redirectOn: 'root'
+      alwaysRedirect: false,
+      fallbackLocale: 'en'
     }
   },
 

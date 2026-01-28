@@ -8,10 +8,10 @@
       <!-- Title -->
       <div class="text-center mb-12">
         <h1 class="text-3xl font-bold text-neon-cyan mb-4 font-orbitron tracking-wider">
-          DOCUMENTATION
+          {{ $t('docs.index.title') }}
         </h1>
         <p class="text-gray-400">
-          Select a project to explore its documentation
+          {{ $t('docs.index.subtitle') }}
         </p>
       </div>
 
@@ -38,10 +38,10 @@
 
           <!-- Content -->
           <h2 class="text-xl font-bold text-gray-100 group-hover:text-neon-cyan transition-colors mb-2">
-            {{ project.label }}
+            {{ $t(project.labelKey) }}
           </h2>
           <p class="text-gray-500 text-sm">
-            {{ project.description }}
+            {{ $t(project.descriptionKey) }}
           </p>
 
           <!-- Arrow -->
@@ -62,7 +62,7 @@
           to="/"
           class="text-gray-500 hover:text-neon-cyan transition-colors text-sm"
         >
-          &larr; Back to Home
+          &larr; {{ $t('nav.back_to_home') }}
         </NuxtLink>
       </div>
     </main>
