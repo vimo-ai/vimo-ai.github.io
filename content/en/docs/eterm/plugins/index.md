@@ -71,8 +71,6 @@ See [MCP Router](/docs/mcp-router) for details.
 
 **HistoryKit** — Session snapshots.
 
-**DevHelperKit** — Project script runner. Scans your workspace for Node/Rust/Go projects and lists available scripts. Run scripts in an embedded terminal.
-
 ## Plugin Location
 
 Plugins are installed to `~/.vimo/eterm/plugins/`.
